@@ -1,0 +1,8 @@
+
+{
+  "name": "Gluten-Free Scanner",
+  "description": "A comprehensive mobile application for scanning products, searching for gluten-free items, and managing favorites with a modern dark-themed UI.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

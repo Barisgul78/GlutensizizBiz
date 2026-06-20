@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /favoriler/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /urunler/{productId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /markalar/{marka}/marka_urunleri/{productId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // collectionGroup('marka_urunleri') sorguları için zorunlu wildcard kuralı
+    match /{path=**}/marka_urunleri/{productId} {
+      allow read: if true;
+    }
+
+    match /mekanlar/{venueId} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}
