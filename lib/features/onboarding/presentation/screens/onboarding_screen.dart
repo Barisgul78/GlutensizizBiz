@@ -7,8 +7,6 @@ import '../../../../../core/widgets/bubble_background.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../../auth/presentation/screens/sign_screen.dart';
 
-const Color _kDarkGreen = Color(0xFF2D4A2D);
-
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -47,20 +45,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Future<void> _skipToSign() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('onboarding_done', true);
-    if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => AuthService.currentUser != null
-            ? const MainShell()
-            : const SignScreen(),
-      ),
-    );
-  }
-
-  Color get _bgColor => _currentPage == 2 ? _kDarkGreen : kBackground;
+  Color get _bgColor => _currentPage == 2 ? kOnboardingDarkGreen : kBackground;
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +65,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   'Glutensiz ürünleri kolayca keşfedin. Marketlerdeki glutensiz alternatifleri bulmanız artık çok kolay.',
               activeIndex: 0,
               isDark: false,
-              onSkip: _skipToSign,
+              onSkip: _completeOnboarding,
               buttons: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 28),
                 child: _PillButton(
@@ -97,7 +82,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   'Bulunduğunuz konuma yakın glutensiz menü sunan restoranları anında bulun. Sağlıklı ve lezzetli seçenekler sizi bekliyor.',
               activeIndex: 1,
               isDark: false,
-              onSkip: _skipToSign,
+              onSkip: _completeOnboarding,
               buttons: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 28),
                 child: Row(

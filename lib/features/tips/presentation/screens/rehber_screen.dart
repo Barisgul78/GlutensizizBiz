@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/constants/app_sizes.dart';
+import '../widgets/category_badge.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Veri modelleri
@@ -338,8 +339,14 @@ class _RehberScreenState extends State<RehberScreen> {
                             ),
                             if (item.badge != null) ...[
                               const SizedBox(width: AppSizes.xs),
-                              _badge(
-                                  item.badge!, item.badgeBg!, item.badgeText!),
+                              CategoryBadge(
+                                label: item.badge!,
+                                bgColor: item.badgeBg!,
+                                fgColor: item.badgeText!,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSizes.sm, vertical: 2),
+                                fontSize: AppSizes.fontXs,
+                              ),
                             ],
                           ],
                         ),
@@ -364,25 +371,6 @@ class _RehberScreenState extends State<RehberScreen> {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _badge(String label, Color bg, Color textColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSizes.sm, vertical: 2),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(AppSizes.radiusFull),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.plusJakartaSans(
-          color: textColor,
-          fontSize: AppSizes.fontXs,
-          fontWeight: FontWeight.w600,
         ),
       ),
     );

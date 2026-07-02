@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/bubble_background.dart';
 import '../../../../core/routing/main_shell.dart';
+import '../../../../../core/utils/snackbars.dart';
 import '../../data/services/auth_service.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
@@ -30,17 +31,7 @@ class _SignScreenState extends State<SignScreen> {
     } on FirebaseAuthException catch (e) {
       debugPrint('Misafir giriş hatası — kod: ${e.code}, mesaj: ${e.message}');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AuthService.errorMessage(e.code),
-              style: GoogleFonts.plusJakartaSans()),
-          backgroundColor: kError,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          margin: const EdgeInsets.all(16),
-        ),
-      );
+      showErrorSnackBar(context, AuthService.errorMessage(e.code));
     } finally {
       if (mounted) setState(() => _guestLoading = false);
     }

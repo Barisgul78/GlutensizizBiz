@@ -73,3 +73,22 @@ class AppTextField extends StatelessWidget {
     );
   }
 }
+
+// Şifre alanlarında göster/gizle ikonu — AppTextField suffixIcon'u olarak kullanılır
+class AuthFieldToggleVisibility extends StatelessWidget {
+  const AuthFieldToggleVisibility({super.key, required this.show, required this.onTap});
+  final bool show;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(
+        show ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+        color: kOnSurfaceVariant,
+        size: 20,
+      ),
+      onPressed: onTap,
+    );
+  }
+}

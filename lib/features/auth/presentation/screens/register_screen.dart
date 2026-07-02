@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/routing/main_shell.dart';
-import '../../../../../core/widgets/auth_field.dart';
+import '../../../../../core/widgets/custom_text_field.dart';
+import '../../../../../core/widgets/custom_button.dart';
+import '../../../../../core/utils/snackbars.dart';
 import '../../data/services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -49,25 +51,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      _showError(AuthService.errorMessage(e.code));
+      showErrorSnackBar(context, AuthService.errorMessage(e.code));
     } catch (_) {
       if (!mounted) return;
-      _showError('Bir hata oluştu. Lütfen tekrar deneyin.');
+      showErrorSnackBar(context, 'Bir hata oluştu. Lütfen tekrar deneyin.');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
-  }
-
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, style: GoogleFonts.plusJakartaSans()),
-        backgroundColor: kError,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
   }
 
   @override
@@ -113,7 +103,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 32),
 
                 // Ad Soyad
-                AuthField(
+                AppTextField(
                   controller: _nameCtrl,
                   label: 'Ad Soyad',
                   icon: Icons.person_outline_rounded,
@@ -125,7 +115,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 14),
 
                 // E-posta
-                AuthField(
+                AppTextField(
                   controller: _emailCtrl,
                   label: 'E-posta',
                   icon: Icons.email_outlined,
@@ -139,7 +129,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 14),
 
                 // Şifre
-                AuthField(
+                AppTextField(
                   controller: _passCtrl,
                   label: 'Şifre',
                   icon: Icons.lock_outline_rounded,
@@ -157,7 +147,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 14),
 
                 // Şifre tekrar
-                AuthField(
+                AppTextField(
                   controller: _confirmCtrl,
                   label: 'Şifre Tekrar',
                   icon: Icons.lock_outline_rounded,
@@ -174,36 +164,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 32),
 
                 // Kayıt Ol butonu
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: FilledButton(
-                    onPressed: _loading ? null : _register,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: kPrimary,
-                      disabledBackgroundColor: kPrimary.withValues(alpha: 0.5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    child: _loading
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2.5,
-                            ),
-                          )
-                        : Text(
-                            'Kayıt Ol',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                  ),
+                AppButton(
+                  label: 'Kayıt Ol',
+                  onPressed: _loading ? null : _register,
+                  loading: _loading,
                 ),
                 const SizedBox(height: 24),
 

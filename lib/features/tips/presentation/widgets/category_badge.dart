@@ -10,6 +10,8 @@ class CategoryBadge extends StatelessWidget {
   final bool filled;
   final EdgeInsetsGeometry padding;
   final double fontSize;
+  final Color? bgColor;
+  final Color? fgColor;
 
   const CategoryBadge({
     super.key,
@@ -18,12 +20,14 @@ class CategoryBadge extends StatelessWidget {
     this.padding = const EdgeInsets.symmetric(
         horizontal: AppSizes.sm + 2, vertical: AppSizes.xs),
     this.fontSize = AppSizes.fontSm,
+    this.bgColor,
+    this.fgColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bg = filled ? kPrimary : kPrimary.withValues(alpha: 0.12);
-    final fg = filled ? kOnPrimary : kPrimary;
+    final bg = bgColor ?? (filled ? kPrimary : kPrimary.withValues(alpha: 0.12));
+    final fg = fgColor ?? (filled ? kOnPrimary : kPrimary);
     return Container(
       padding: padding,
       decoration: BoxDecoration(

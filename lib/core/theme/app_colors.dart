@@ -32,6 +32,9 @@ const Color kOnErrorContainer = Color(0xFF93000A);
 const Color kInverseSurface = Color(0xFF372F27);
 const Color kInverseOnSurface = Color(0xFFFDEEE2);
 
+// Onboarding — koyu yeşil sayfa arka planı
+const Color kOnboardingDarkGreen = Color(0xFF2D4A2D);
+
 // Pastel ikon arka planları
 const Color kPastelGreen  = Color(0xFFE8F5E9);
 const Color kPastelBlue   = Color(0xFFE3F2FD);
