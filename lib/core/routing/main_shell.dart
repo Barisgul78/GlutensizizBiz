@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/search/presentation/screens/search_screen.dart';
-import '../../features/venues/presentation/screens/venues_screen.dart';
 import '../../features/favorites/presentation/screens/favorites_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/tips/presentation/screens/rehber_screen.dart';
 import '../../features/search/data/models/product.dart';
 
 class MainShell extends StatefulWidget {
@@ -27,11 +27,11 @@ class _MainShellState extends State<MainShell> {
   void initState() {
     super.initState();
     _pages = [
-      HomeScreen(onTabChange: _navigateToTab),
-      const SearchScreen(),
-      const VenuesScreen(),
-      FavoritesScreen(onProductSelect: _dummySelect),
-      const ProfileScreen(),
+      HomeScreen(onTabChange: _navigateToTab), // 0 - Anasayfa
+      const SearchScreen(),                    // 1 - Ara
+      const RehberScreen(),                    // 2 - Rehber
+      FavoritesScreen(onProductSelect: _dummySelect), // 3 - Favoriler
+      const ProfileScreen(),                   // 4 - Profil
     ];
   }
 
@@ -58,9 +58,9 @@ class _MainShellState extends State<MainShell> {
             label: 'Ara',
           ),
           NavigationDestination(
-            icon: Icon(Icons.restaurant_outlined),
-            selectedIcon: Icon(Icons.restaurant),
-            label: 'Mekanlar',
+            icon: Icon(Icons.menu_book_outlined),
+            selectedIcon: Icon(Icons.menu_book),
+            label: 'Rehber',
           ),
           NavigationDestination(
             icon: Icon(Icons.favorite_outline),

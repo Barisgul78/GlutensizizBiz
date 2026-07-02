@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../../core/routing/main_shell.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/widgets/bubble_background.dart';
+import '../../../auth/data/services/auth_service.dart';
 import '../../../auth/presentation/screens/sign_screen.dart';
 
 const Color _kDarkGreen = Color(0xFF2D4A2D);
@@ -36,7 +39,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await prefs.setBool('onboarding_done', true);
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const SignScreen()),
+      MaterialPageRoute(
+        builder: (_) => AuthService.currentUser != null
+            ? const MainShell()
+            : const SignScreen(),
+      ),
     );
   }
 
@@ -45,7 +52,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await prefs.setBool('onboarding_done', true);
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const SignScreen()),
+      MaterialPageRoute(
+        builder: (_) => AuthService.currentUser != null
+            ? const MainShell()
+            : const SignScreen(),
+      ),
     );
   }
 
@@ -182,7 +193,7 @@ class _OnboardingPage extends StatelessWidget {
 
     return Stack(
       children: [
-        _BubbleBackground(isDark: isDark),
+        BubbleBackground(isDark: isDark),
         SafeArea(
           child: Column(
             children: [
@@ -284,98 +295,6 @@ class _OnboardingPage extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Arka plan kabarcıkları
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _BubbleBackground extends StatelessWidget {
-  const _BubbleBackground({this.isDark = false});
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
-    // Açık tema renkleri
-    const sageColor = kPrimary;
-    const peachColor = kSecondary;
-    const grayColor = kOutlineVariant;
-
-    // Koyu tema için beyaz kabarcıklar
-    final darkAlpha = isDark ? 0.08 : 0.0;
-    final sageAlpha = isDark ? darkAlpha : 0.12;
-    final peachAlpha = isDark ? darkAlpha : 0.10;
-    final grayAlpha = isDark ? darkAlpha : 0.16;
-
-    Color bubble(Color c, double alpha) =>
-        isDark ? Colors.white.withValues(alpha: alpha + 0.06) : c.withValues(alpha: alpha);
-
-    return SizedBox.expand(
-      child: Stack(
-        children: [
-          // Sağ üst — büyük
-          Positioned(
-            top: -size.height * 0.06,
-            right: -size.width * 0.12,
-            child: _Bubble(size: size.width * 0.38,
-                color: bubble(grayColor, grayAlpha)),
-          ),
-          // Sağ üst — orta
-          Positioned(
-            top: size.height * 0.08,
-            right: size.width * 0.02,
-            child: _Bubble(size: size.width * 0.18,
-                color: bubble(peachColor, peachAlpha + 0.04)),
-          ),
-          // Orta sol — küçük
-          Positioned(
-            top: size.height * 0.20,
-            left: size.width * 0.05,
-            child: _Bubble(size: size.width * 0.10,
-                color: bubble(sageColor, sageAlpha)),
-          ),
-          // Orta sağ — küçük
-          Positioned(
-            top: size.height * 0.48,
-            right: size.width * 0.08,
-            child: _Bubble(size: size.width * 0.08,
-                color: bubble(peachColor, peachAlpha)),
-          ),
-          // Sol alt — büyük
-          Positioned(
-            bottom: -size.height * 0.05,
-            left: -size.width * 0.10,
-            child: _Bubble(size: size.width * 0.42,
-                color: bubble(sageColor, sageAlpha - 0.03)),
-          ),
-          // Sağ alt — orta
-          Positioned(
-            bottom: size.height * 0.08,
-            right: size.width * 0.04,
-            child: _Bubble(size: size.width * 0.16,
-                color: bubble(grayColor, grayAlpha - 0.05)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Bubble extends StatelessWidget {
-  const _Bubble({required this.size, required this.color});
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }

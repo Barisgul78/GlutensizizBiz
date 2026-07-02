@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../../search/data/models/product.dart';
 import '../../../auth/data/services/auth_service.dart';
+import '../../../favorites/data/services/favorites_service.dart';
 import '../../../../../core/theme/app_colors.dart';
 
 class DetailScreen extends StatefulWidget {
@@ -24,19 +24,12 @@ class _DetailScreenState extends State<DetailScreen> {
   }
 
   Future<void> _checkIfFavorite() async {
-    final userId = AuthService.currentUserId;
-    if (userId == null) return;
-
-    final doc = await FirebaseFirestore.instance.collection('favoriler').doc(userId).get();
-    if (doc.exists && mounted) {
-      final List urunler = doc.data()?['urun_idleri'] ?? [];
-      setState(() => isFavorite = urunler.contains(widget.product.id));
-    }
+    final isF = await FavoritesService.isProductFavorite(widget.product.id);
+    if (mounted) setState(() => isFavorite = isF);
   }
 
   Future<void> _toggleFavorite() async {
-    final userId = AuthService.currentUserId;
-    if (userId == null) {
+    if (AuthService.currentUserId == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Favorilere eklemek için giriş yapmanız gerekiyor.')),
@@ -44,17 +37,8 @@ class _DetailScreenState extends State<DetailScreen> {
       }
       return;
     }
-
-    final docRef = FirebaseFirestore.instance.collection('favoriler').doc(userId);
-    if (isFavorite) {
-      await docRef.update({'urun_idleri': FieldValue.arrayRemove([widget.product.id])});
-    } else {
-      await docRef.set(
-        {'urun_idleri': FieldValue.arrayUnion([widget.product.id])},
-        SetOptions(merge: true),
-      );
-    }
-    setState(() => isFavorite = !isFavorite);
+    await FavoritesService.toggleProductFavorite(widget.product.id, isFavorite: isFavorite);
+    if (mounted) setState(() => isFavorite = !isFavorite);
   }
 
   @override

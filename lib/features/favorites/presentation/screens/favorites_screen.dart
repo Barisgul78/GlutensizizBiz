@@ -1,16 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../search/data/models/product.dart';
 import '../../../auth/data/services/auth_service.dart';
+import '../../data/services/favorites_service.dart';
 import '../../../../../core/theme/app_colors.dart';
-
-String _initials(String? name) {
-  if (name == null || name.trim().isEmpty) return '?';
-  final parts = name.trim().split(' ');
-  if (parts.length >= 2) return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-  return parts[0][0].toUpperCase();
-}
+import '../../../../../core/utils/string_utils.dart';
 
 class FavoritesScreen extends StatefulWidget {
   final Function(Product) onProductSelect;
@@ -64,7 +58,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ),
             child: Center(
               child: Text(
-                _initials(AuthService.currentUser?.displayName),
+                initials(AuthService.currentUser?.displayName),
                 style: GoogleFonts.plusJakartaSans(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -161,15 +155,16 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       );
     }
 
-    return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance.collection('favoriler').doc(userId).snapshots(),
+    return StreamBuilder(
+      stream: FavoritesService.favoritesStream(userId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator(color: kPrimary));
         }
 
-        final List<String> productIds = snapshot.hasData && snapshot.data!.exists
-            ? List<String>.from(snapshot.data!.get('urun_idleri') ?? [])
+        final data = snapshot.data;
+        final List<String> productIds = (data != null && data.exists)
+            ? List<String>.from((data.data() as Map?)?['urun_idleri'] ?? [])
             : [];
 
         if (productIds.isEmpty) {
@@ -181,29 +176,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           );
         }
 
-        // Firestore whereIn max 10 destekler
-        final idsToFetch = productIds.take(10).toList();
-
-        return FutureBuilder<QuerySnapshot>(
-          future: FirebaseFirestore.instance
-              .collectionGroup('marka_urunleri')
-              .where('id', whereIn: idsToFetch)
-              .get(),
+        return FutureBuilder<List<Product>>(
+          future: FavoritesService.fetchProductsByIds(productIds.take(10).toList()),
           builder: (context, productSnapshot) {
             if (productSnapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator(color: kPrimary));
             }
 
-            if (!productSnapshot.hasData || productSnapshot.data!.docs.isEmpty) {
+            final products = productSnapshot.data ?? [];
+            if (products.isEmpty) {
               return Center(
                 child: Text('Ürünler yüklenemedi.',
                     style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant)),
               );
             }
-
-            final products = productSnapshot.data!.docs
-                .map((doc) => Product.fromFirestore(doc.data() as Map<String, dynamic>))
-                .toList();
 
             return ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 20),

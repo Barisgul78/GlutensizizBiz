@@ -1,14 +1,17 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/models/product.dart';
+import '../../data/services/search_service.dart';
 import '../../../product_detail/presentation/screens/detail_screen.dart';
 import '../../../auth/data/services/auth_service.dart';
+import '../../../favorites/data/services/favorites_service.dart';
 import '../../../../../core/theme/app_colors.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  final String? initialQuery;
+
+  const SearchScreen({super.key, this.initialQuery});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -28,14 +31,13 @@ class _SearchScreenState extends State<SearchScreen> {
     super.initState();
     _allProductsFuture = _fetchAllProducts();
     _loadRecentSearches();
+    if (widget.initialQuery != null && widget.initialQuery!.isNotEmpty) {
+      _searchController.text = widget.initialQuery!;
+      query = widget.initialQuery!.trim().toLowerCase();
+    }
   }
 
-  Future<List<Product>> _fetchAllProducts() async {
-    final snap = await FirebaseFirestore.instance
-        .collectionGroup('marka_urunleri')
-        .get();
-    return snap.docs.map((d) => Product.fromFirestore(d.data())).toList();
-  }
+  Future<List<Product>> _fetchAllProducts() => SearchService.fetchAll();
 
   void _retryFetch() {
     setState(() => _allProductsFuture = _fetchAllProducts());
@@ -61,10 +63,7 @@ class _SearchScreenState extends State<SearchScreen> {
       return;
     }
 
-    final docRef = FirebaseFirestore.instance.collection('favoriler').doc(userId);
-    await docRef.set({
-      'urun_idleri': FieldValue.arrayUnion([product.id])
-    }, SetOptions(merge: true));
+    await FavoritesService.addProductFavorite(product.id);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -322,11 +321,8 @@ class _SearchScreenState extends State<SearchScreen> {
                 color: kOnSurface, fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 12),
-          FutureBuilder<QuerySnapshot>(
-            future: FirebaseFirestore.instance
-                .collectionGroup('marka_urunleri')
-                .limit(5)
-                .get(),
+          FutureBuilder<List<Product>>(
+            future: _allProductsFuture,
             builder: (context, snap) {
               if (snap.connectionState == ConnectionState.waiting) {
                 return const Center(
@@ -336,7 +332,8 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                 );
               }
-              if (!snap.hasData || snap.data!.docs.isEmpty) {
+              final products = (snap.data ?? []).take(5).toList();
+              if (products.isEmpty) {
                 return Text(
                   'Henüz ürün eklenmemiş.',
                   style: GoogleFonts.sourceSans3(
@@ -344,8 +341,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 );
               }
               return Column(
-                children: snap.data!.docs.map((doc) {
-                  final product = Product.fromFirestore(doc.data() as Map<String, dynamic>);
+                children: products.map((product) {
                   return GestureDetector(
                     onTap: () => Navigator.push(
                       context,

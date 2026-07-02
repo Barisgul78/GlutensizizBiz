@@ -2,13 +2,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/widgets/bubble_background.dart';
 import '../../../../core/routing/main_shell.dart';
 import '../../data/services/auth_service.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
-
-// _BubbleBackground onboarding_screen.dart içindeki ile aynı mantık;
-// sign ekranı kendi kopyasını barındırır (ileride core/widgets'a taşınabilir).
 
 class SignScreen extends StatefulWidget {
   const SignScreen({super.key});
@@ -54,7 +52,7 @@ class _SignScreenState extends State<SignScreen> {
       backgroundColor: kBackground,
       body: Stack(
         children: [
-          const _SignBubbleBackground(),
+          const BubbleBackground(),
           SafeArea(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
@@ -254,82 +252,6 @@ class _SignScreenState extends State<SignScreen> {
           ),
         ],
       ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Sign ekranı arka plan kabarcıkları
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _SignBubbleBackground extends StatelessWidget {
-  const _SignBubbleBackground();
-
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    return SizedBox.expand(
-      child: Stack(
-        children: [
-          Positioned(
-            top: -size.height * 0.05,
-            right: -size.width * 0.10,
-            child: _Bubble(
-                size: size.width * 0.36,
-                color: kOutlineVariant.withValues(alpha: 0.16)),
-          ),
-          Positioned(
-            top: size.height * 0.07,
-            right: size.width * 0.03,
-            child: _Bubble(
-                size: size.width * 0.17,
-                color: kSecondary.withValues(alpha: 0.09)),
-          ),
-          Positioned(
-            top: size.height * 0.18,
-            left: size.width * 0.04,
-            child: _Bubble(
-                size: size.width * 0.09,
-                color: kPrimary.withValues(alpha: 0.11)),
-          ),
-          Positioned(
-            top: size.height * 0.52,
-            right: size.width * 0.07,
-            child: _Bubble(
-                size: size.width * 0.07,
-                color: kSecondary.withValues(alpha: 0.08)),
-          ),
-          Positioned(
-            bottom: -size.height * 0.04,
-            left: -size.width * 0.09,
-            child: _Bubble(
-                size: size.width * 0.44,
-                color: kPrimary.withValues(alpha: 0.09)),
-          ),
-          Positioned(
-            bottom: size.height * 0.10,
-            right: size.width * 0.05,
-            child: _Bubble(
-                size: size.width * 0.14,
-                color: kOutlineVariant.withValues(alpha: 0.12)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Bubble extends StatelessWidget {
-  const _Bubble({required this.size, required this.color});
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }

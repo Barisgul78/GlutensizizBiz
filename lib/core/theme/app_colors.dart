@@ -31,3 +31,18 @@ const Color kOnErrorContainer = Color(0xFF93000A);
 
 const Color kInverseSurface = Color(0xFF372F27);
 const Color kInverseOnSurface = Color(0xFFFDEEE2);
+
+// Pastel ikon arka planları
+const Color kPastelGreen  = Color(0xFFE8F5E9);
+const Color kPastelBlue   = Color(0xFFE3F2FD);
+const Color kPastelRed    = Color(0xFFFFEBEE);
+const Color kPastelYellow = Color(0xFFFFF8E1);
+const Color kPastelOrange = Color(0xFFFFF3E0);
+const Color kPastelPink   = Color(0xFFFCE4EC);
+const Color kPastelGray   = Color(0xFFF5F5F0);
+const Color kMapBackground = Color(0xFFDDE8D8);
+
+// Badge renkleri
+const Color kBadgeSuccess = Color(0xFF2E7D32);
+const Color kBadgeDanger  = Color(0xFFE53935);
+const Color kBadgeInfo    = Color(0xFF1565C0);

@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/utils/string_utils.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../../auth/presentation/screens/sign_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
-
-  // Baş harflerden avatar
-  String _initials(String? name) {
-    if (name == null || name.trim().isEmpty) return '?';
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    return parts[0][0].toUpperCase();
-  }
 
   // Üyelik tarihini Türkçe formatla
   String _memberSince() {
@@ -113,7 +106,7 @@ class ProfileScreen extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                _initials(AuthService.currentUser?.displayName),
+                initials(AuthService.currentUser?.displayName),
                 style: GoogleFonts.plusJakartaSans(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -163,7 +156,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    _initials(AuthService.currentUser?.displayName),
+                    initials(AuthService.currentUser?.displayName),
                     style: GoogleFonts.plusJakartaSans(
                       color: Colors.white,
                       fontSize: 36,

@@ -16,19 +16,23 @@ void main() async {
   final onboardingDone = kReleaseMode
       ? (prefs.getBool('onboarding_done') ?? false)
       : false;
-  runApp(MyApp(showOnboarding: !onboardingDone));
+  // currentUser yerine stream'in ilk event'i beklenir — oturum disk'ten
+  // henüz geri yüklenmeden senkron kontrol yanlışlıkla null dönebilir
+  final user = await AuthService.authStateChanges.first;
+  runApp(MyApp(showOnboarding: !onboardingDone, isLoggedIn: user != null));
 }
 
 class MyApp extends StatelessWidget {
   final bool showOnboarding;
-  const MyApp({super.key, required this.showOnboarding});
+  final bool isLoggedIn;
+  const MyApp({super.key, required this.showOnboarding, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
     final Widget home;
     if (showOnboarding) {
       home = const OnboardingScreen();
-    } else if (AuthService.currentUser != null) {
+    } else if (isLoggedIn) {
       // Oturum açık kalmış — direkt ana sayfaya
       home = const MainShell();
     } else {

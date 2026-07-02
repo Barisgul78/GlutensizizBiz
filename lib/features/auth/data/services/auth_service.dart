@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import '../../../../core/utils/firebase_error_mapper.dart';
 
 class AuthService {
   static final _auth = FirebaseAuth.instance;
@@ -61,28 +62,6 @@ class AuthService {
     await _auth.signOut();
   }
 
-  // ── Firebase hata kodunu Türkçeye çevir ────────────────────────────────────
-  static String errorMessage(String code) {
-    switch (code) {
-      case 'email-already-in-use':
-        return 'Bu e-posta adresi zaten kullanılıyor.';
-      case 'weak-password':
-        return 'Şifre en az 6 karakter olmalıdır.';
-      case 'invalid-email':
-        return 'Geçersiz e-posta adresi.';
-      case 'user-not-found':
-        return 'Bu e-posta ile kayıtlı kullanıcı bulunamadı.';
-      case 'wrong-password':
-      case 'invalid-credential':
-        return 'E-posta veya şifre hatalı.';
-      case 'too-many-requests':
-        return 'Çok fazla deneme yapıldı. Lütfen biraz bekleyin.';
-      case 'operation-not-allowed':
-        return 'Bu giriş yöntemi etkin değil. Firebase Console\'dan aktif edin.';
-      case 'network-request-failed':
-        return 'İnternet bağlantısını kontrol edin.';
-      default:
-        return 'Bir hata oluştu. Lütfen tekrar deneyin.';
-    }
-  }
+  // Firebase hata kodunu Türkçeye çevir — FirebaseErrorMapper'a delege edildi
+  static String errorMessage(String code) => FirebaseErrorMapper.map(code);
 }
