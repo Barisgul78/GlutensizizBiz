@@ -5,6 +5,8 @@ import '../../../../../core/constants/app_sizes.dart';
 import '../../../../../core/utils/date_utils.dart' as du;
 import '../../data/models/tip.dart';
 import '../../data/services/tips_service.dart';
+import '../widgets/category_badge.dart';
+import '../widgets/tip_image.dart';
 import 'tip_detail_screen.dart';
 
 class TipsListScreen extends StatelessWidget {
@@ -85,15 +87,7 @@ class _TipListCard extends StatelessWidget {
               child: SizedBox(
                 width: 100,
                 height: 100,
-                child: Image.asset(
-                  tip.imageAsset,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: kSurfaceContainerHighest,
-                    child: const Icon(Icons.image_outlined,
-                        color: kOnSurfaceVariant),
-                  ),
-                ),
+                child: TipImage(asset: tip.imageAsset),
               ),
             ),
             Expanded(
@@ -102,24 +96,14 @@ class _TipListCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
+                    CategoryBadge(
+                      label: tip.category,
+                      filled: false,
                       padding: const EdgeInsets.symmetric(
                         horizontal: AppSizes.sm,
                         vertical: 3,
                       ),
-                      decoration: BoxDecoration(
-                        color: kPrimary.withValues(alpha: 0.12),
-                        borderRadius:
-                            BorderRadius.circular(AppSizes.radiusFull),
-                      ),
-                      child: Text(
-                        tip.category,
-                        style: GoogleFonts.plusJakartaSans(
-                          color: kPrimary,
-                          fontSize: AppSizes.fontXs + 1,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      fontSize: AppSizes.fontXs + 1,
                     ),
                     const SizedBox(height: AppSizes.xs),
                     Text(

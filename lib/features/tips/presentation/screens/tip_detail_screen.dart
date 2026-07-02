@@ -5,6 +5,8 @@ import '../../../../../core/constants/app_sizes.dart';
 import '../../../../../core/utils/date_utils.dart' as du;
 import '../../../../../core/widgets/bubble_background.dart';
 import '../../data/models/tip.dart';
+import '../widgets/category_badge.dart';
+import '../widgets/tip_image.dart';
 import 'tips_list_screen.dart';
 
 class TipDetailScreen extends StatefulWidget {
@@ -16,23 +18,14 @@ class TipDetailScreen extends StatefulWidget {
   State<TipDetailScreen> createState() => _TipDetailScreenState();
 }
 
+enum _Reaction { none, liked, disliked }
+
 class _TipDetailScreenState extends State<TipDetailScreen> {
-  bool _liked = false;
-  bool _disliked = false;
+  _Reaction _reaction = _Reaction.none;
   bool _saved = false;
 
-  void _toggleLike() {
-    setState(() {
-      _liked = !_liked;
-      if (_liked) _disliked = false;
-    });
-  }
-
-  void _toggleDislike() {
-    setState(() {
-      _disliked = !_disliked;
-      if (_disliked) _liked = false;
-    });
+  void _setReaction(_Reaction r) {
+    setState(() => _reaction = _reaction == r ? _Reaction.none : r);
   }
 
   @override
@@ -115,38 +108,13 @@ class _TipDetailScreenState extends State<TipDetailScreen> {
           borderRadius: BorderRadius.circular(AppSizes.radiusLg),
           child: AspectRatio(
             aspectRatio: 16 / 9,
-            child: Image.asset(
-              tip.imageAsset,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                color: kSurfaceContainerHighest,
-                child: const Icon(Icons.image_outlined,
-                    color: kOnSurfaceVariant, size: 40),
-              ),
-            ),
+            child: TipImage(asset: tip.imageAsset, iconSize: 40),
           ),
         ),
         Positioned(
           top: AppSizes.sm + 4,
           left: AppSizes.sm + 4,
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSizes.sm + 2,
-              vertical: AppSizes.xs,
-            ),
-            decoration: BoxDecoration(
-              color: kPrimary,
-              borderRadius: BorderRadius.circular(AppSizes.radiusFull),
-            ),
-            child: Text(
-              tip.category,
-              style: GoogleFonts.plusJakartaSans(
-                color: kOnPrimary,
-                fontSize: AppSizes.fontSm,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+          child: CategoryBadge(label: tip.category),
         ),
       ],
     );
@@ -220,8 +188,10 @@ class _TipDetailScreenState extends State<TipDetailScreen> {
   }
 
   Widget _buildInteractionRow(Tip tip) {
-    final likeCount = tip.likes + (_liked ? 1 : 0);
-    final dislikeCount = tip.dislikes + (_disliked ? 1 : 0);
+    final liked = _reaction == _Reaction.liked;
+    final disliked = _reaction == _Reaction.disliked;
+    final likeCount = tip.likes + (liked ? 1 : 0);
+    final dislikeCount = tip.dislikes + (disliked ? 1 : 0);
 
     return Row(
       children: [
@@ -231,8 +201,8 @@ class _TipDetailScreenState extends State<TipDetailScreen> {
           count: likeCount,
           activeColor: Colors.amber.shade600,
           borderColor: kPrimary,
-          isActive: _liked,
-          onTap: _toggleLike,
+          isActive: liked,
+          onTap: () => _setReaction(_Reaction.liked),
         ),
         const SizedBox(width: AppSizes.sm + 4),
         _InteractionButton(
@@ -241,8 +211,8 @@ class _TipDetailScreenState extends State<TipDetailScreen> {
           count: dislikeCount,
           activeColor: kError,
           borderColor: kError,
-          isActive: _disliked,
-          onTap: _toggleDislike,
+          isActive: disliked,
+          onTap: () => _setReaction(_Reaction.disliked),
         ),
         const SizedBox(width: AppSizes.sm + 4),
         _InteractionButton(

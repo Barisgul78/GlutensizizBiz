@@ -154,6 +154,7 @@ class _RehberScreenState extends State<RehberScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final filtered = _filtered;
     return Scaffold(
       backgroundColor: kBackground,
       appBar: AppBar(
@@ -198,7 +199,7 @@ class _RehberScreenState extends State<RehberScreen> {
           ),
           // Gruplu liste
           Expanded(
-            child: _filtered.isEmpty
+            child: filtered.isEmpty
                 ? _buildEmptyState()
                 : ListView.builder(
                     padding: const EdgeInsets.only(
@@ -206,8 +207,8 @@ class _RehberScreenState extends State<RehberScreen> {
                       right: AppSizes.screenPaddingH,
                       bottom: AppSizes.xxl,
                     ),
-                    itemCount: _filtered.length,
-                    itemBuilder: (_, i) => _buildGroup(_filtered[i]),
+                    itemCount: filtered.length,
+                    itemBuilder: (_, i) => _buildGroup(filtered[i]),
                   ),
           ),
         ],

@@ -10,6 +10,7 @@ import '../../../../../core/services/location_service.dart';
 import '../../../../../core/utils/string_utils.dart';
 import '../../../../../core/utils/date_utils.dart' as du;
 import '../../../search/presentation/widgets/product_status_badge.dart';
+import '../../../tips/presentation/widgets/category_badge.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../../tips/data/services/tips_service.dart';
 import '../../../tips/presentation/screens/tip_detail_screen.dart';
@@ -628,21 +629,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 Positioned(
                   bottom: AppSizes.sm,
                   left: AppSizes.sm,
-                  child: Container(
+                  child: CategoryBadge(
+                    label: tip.category,
                     padding: const EdgeInsets.symmetric(
                         horizontal: AppSizes.sm + 2, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: kPrimary,
-                      borderRadius: BorderRadius.circular(AppSizes.radiusFull),
-                    ),
-                    child: Text(
-                      tip.category,
-                      style: GoogleFonts.plusJakartaSans(
-                        color: kOnPrimary,
-                        fontSize: AppSizes.fontXs + 1,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    fontSize: AppSizes.fontXs + 1,
                   ),
                 ),
               ],
