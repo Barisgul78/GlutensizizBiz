@@ -8,6 +8,8 @@ import '../../data/models/tip.dart';
 import '../widgets/category_badge.dart';
 import '../widgets/tip_image.dart';
 import 'tips_list_screen.dart';
+import '../../../auth/data/services/auth_service.dart';
+import '../../../favorites/data/services/favorites_service.dart';
 
 class TipDetailScreen extends StatefulWidget {
   final Tip tip;
@@ -23,6 +25,30 @@ enum _Reaction { none, liked, disliked }
 class _TipDetailScreenState extends State<TipDetailScreen> {
   _Reaction _reaction = _Reaction.none;
   bool _saved = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfSaved();
+  }
+
+  Future<void> _checkIfSaved() async {
+    final saved = await FavoritesService.isArticleFavorite(widget.tip.id);
+    if (mounted) setState(() => _saved = saved);
+  }
+
+  Future<void> _toggleSaved() async {
+    if (AuthService.currentUserId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Kaydetmek için giriş yapmanız gerekiyor.')),
+        );
+      }
+      return;
+    }
+    await FavoritesService.toggleArticleFavorite(widget.tip.id, isFavorite: _saved);
+    if (mounted) setState(() => _saved = !_saved);
+  }
 
   void _setReaction(_Reaction r) {
     setState(() => _reaction = _reaction == r ? _Reaction.none : r);
@@ -226,7 +252,7 @@ class _TipDetailScreenState extends State<TipDetailScreen> {
         ),
         const Spacer(),
         GestureDetector(
-          onTap: () => setState(() => _saved = !_saved),
+          onTap: _toggleSaved,
           child: Container(
             width: 44,
             height: 44,
