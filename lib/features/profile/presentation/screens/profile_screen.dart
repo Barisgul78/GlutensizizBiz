@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/utils/date_utils.dart' as du;
 import '../../../../../core/utils/string_utils.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../../auth/presentation/screens/sign_screen.dart';
@@ -12,11 +13,7 @@ class ProfileScreen extends StatelessWidget {
   String _memberSince() {
     final date = AuthService.currentUser?.metadata.creationTime;
     if (date == null) return '';
-    const months = [
-      '', 'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-      'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
-    ];
-    return '${months[date.month]} ${date.year}\'den beri üye';
+    return '${du.formatMonthYear(date)}\'den beri üye';
   }
 
   Future<void> _signOut(BuildContext context) async {

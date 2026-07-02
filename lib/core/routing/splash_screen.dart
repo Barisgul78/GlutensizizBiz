@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 import '../constants/app_sizes.dart';
+import '../localization/app_strings.dart';
 
 // Uygulama açılışında kısa süre gösterilen logo ekranı
 class SplashScreen extends StatelessWidget {
@@ -30,7 +31,7 @@ class SplashScreen extends StatelessWidget {
             ),
             const SizedBox(height: AppSizes.lg),
             Text(
-              'GluFree',
+              AppStrings.appName,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: AppSizes.fontDisplay,
                 fontWeight: FontWeight.w800,
@@ -40,7 +41,7 @@ class SplashScreen extends StatelessWidget {
             ),
             const SizedBox(height: AppSizes.xs),
             Text(
-              'Glutensiz dünyayı keşfet',
+              AppStrings.appSlogan,
               style: GoogleFonts.sourceSans3(
                 fontSize: AppSizes.fontMd,
                 color: Colors.white.withValues(alpha: 0.8),

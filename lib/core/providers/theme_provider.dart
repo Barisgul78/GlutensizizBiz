@@ -6,31 +6,28 @@ const _kThemeKey = 'theme_mode';
 // Riverpod eklendiğinde StateNotifier'a dönüştürülecek
 class ThemeProvider extends ChangeNotifier {
   ThemeMode _mode = ThemeMode.light;
+  SharedPreferences? _prefs;
 
   ThemeMode get mode => _mode;
   bool get isDark => _mode == ThemeMode.dark;
 
   Future<void> load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final saved = prefs.getString(_kThemeKey);
+    _prefs = await SharedPreferences.getInstance();
+    final saved = _prefs!.getString(_kThemeKey);
     if (saved == 'dark') {
       _mode = ThemeMode.dark;
       notifyListeners();
     }
   }
 
-  Future<void> toggle() async {
-    _mode = isDark ? ThemeMode.light : ThemeMode.dark;
-    notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_kThemeKey, isDark ? 'dark' : 'light');
-  }
+  Future<void> toggle() =>
+      setMode(isDark ? ThemeMode.light : ThemeMode.dark);
 
   Future<void> setMode(ThemeMode mode) async {
     if (_mode == mode) return;
     _mode = mode;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_kThemeKey, mode == ThemeMode.dark ? 'dark' : 'light');
+    _prefs ??= await SharedPreferences.getInstance();
+    await _prefs!.setString(_kThemeKey, mode == ThemeMode.dark ? 'dark' : 'light');
   }
 }

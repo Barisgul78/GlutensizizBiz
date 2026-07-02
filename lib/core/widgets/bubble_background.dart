@@ -7,7 +7,7 @@ class BubbleBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final size = MediaQuery.sizeOf(context);
 
     final sageAlpha = isDark ? 0.08 : 0.12;
     final peachAlpha = isDark ? 0.08 : 0.10;

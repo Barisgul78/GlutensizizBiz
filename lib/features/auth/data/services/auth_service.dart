@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/firebase_error_mapper.dart';
 
 class AuthService {
@@ -28,7 +29,7 @@ class AuthService {
     await cred.user!.updateDisplayName(displayName);
     // Firestore profil belgesi — başarısız olsa bile auth geçerli
     try {
-      await _db.collection('users').doc(cred.user!.uid).set({
+      await _db.collection(kUsersCollection).doc(cred.user!.uid).set({
         'ad': displayName,
         'email': email,
         'fotoURL': null,

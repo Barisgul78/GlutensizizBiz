@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
-import '../../features/search/data/models/product.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../data/models/product.dart';
 
 /// Ürün güvenlik durumunu gösteren küçük rozet (GÜVENLİ / RİSKLİ / ?).
 class ProductStatusBadge extends StatelessWidget {

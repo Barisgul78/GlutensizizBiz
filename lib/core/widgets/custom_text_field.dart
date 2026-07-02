@@ -32,6 +32,13 @@ class AppTextField extends StatelessWidget {
   final FocusNode? focusNode;
   final Iterable<String>? autofillHints;
 
+  static OutlineInputBorder _border(Color color, double width) => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppSizes.radiusLg - 2),
+        borderSide: width == 0
+            ? BorderSide.none
+            : BorderSide(color: color, width: width),
+      );
+
   @override
   Widget build(BuildContext context) {
     return TextFormField(
@@ -53,26 +60,11 @@ class AppTextField extends StatelessWidget {
         suffixIcon: suffixIcon,
         filled: true,
         fillColor: kSurfaceContainerLow,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusLg - 2),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusLg - 2),
-          borderSide: const BorderSide(color: kOutlineVariant, width: 1),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusLg - 2),
-          borderSide: const BorderSide(color: kPrimary, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusLg - 2),
-          borderSide: const BorderSide(color: kError, width: 1),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSizes.radiusLg - 2),
-          borderSide: const BorderSide(color: kError, width: 1.5),
-        ),
+        border: _border(Colors.transparent, 0),
+        enabledBorder: _border(kOutlineVariant, 1),
+        focusedBorder: _border(kPrimary, 1.5),
+        errorBorder: _border(kError, 1),
+        focusedErrorBorder: _border(kError, 1.5),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSizes.md,
           vertical: AppSizes.md,

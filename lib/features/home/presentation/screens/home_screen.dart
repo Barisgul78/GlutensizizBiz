@@ -9,7 +9,7 @@ import '../../../../../core/constants/app_sizes.dart';
 import '../../../../../core/services/location_service.dart';
 import '../../../../../core/utils/string_utils.dart';
 import '../../../../../core/utils/date_utils.dart' as du;
-import '../../../../../core/widgets/product_status_badge.dart';
+import '../../../search/presentation/widgets/product_status_badge.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../../tips/data/services/tips_service.dart';
 import '../../../tips/presentation/screens/tip_detail_screen.dart';

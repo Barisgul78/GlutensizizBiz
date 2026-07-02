@@ -14,7 +14,7 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   // Debug'da her seferinde onboarding göster; release'de sadece bir kez
   final onboardingDone = kReleaseMode
-      ? (prefs.getBool('onboarding_done') ?? false)
+    ? (prefs.getBool('onboarding_done') ?? false)
       : false;
   // currentUser yerine stream'in ilk event'i beklenir — oturum disk'ten
   // henüz geri yüklenmeden senkron kontrol yanlışlıkla null dönebilir

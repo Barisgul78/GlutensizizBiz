@@ -7,6 +7,7 @@ import '../../../product_detail/presentation/screens/detail_screen.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../../favorites/data/services/favorites_service.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../widgets/product_status_badge.dart';
 
 class SearchScreen extends StatefulWidget {
   final String? initialQuery;
@@ -406,7 +407,11 @@ class _SearchScreenState extends State<SearchScreen> {
               Positioned(
                 top: 4,
                 left: 4,
-                child: _statusPill(status),
+                child: ProductStatusBadge(
+                  status: status,
+                  borderRadius: 5,
+                  letterSpacing: 0.3,
+                ),
               ),
             ],
           ),
@@ -456,32 +461,6 @@ class _SearchScreenState extends State<SearchScreen> {
           const Icon(Icons.chevron_right, color: kOutlineVariant, size: 20),
         ],
       ),
-    );
-  }
-
-  Widget _statusPill(ProductStatus status) {
-    final Color bg;
-    final Color fg;
-    final String text;
-    switch (status) {
-      case ProductStatus.safe:
-        bg = kPrimary;
-        fg = kOnPrimary;
-        text = 'GÜVENLİ';
-      case ProductStatus.risky:
-        bg = kError;
-        fg = Colors.white;
-        text = 'RİSKLİ';
-      case ProductStatus.unknown:
-        bg = kSurfaceContainerHighest;
-        fg = kOnSurfaceVariant;
-        text = '?';
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(5)),
-      child: Text(text,
-          style: TextStyle(color: fg, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 0.3)),
     );
   }
 
@@ -611,7 +590,11 @@ class _SearchScreenState extends State<SearchScreen> {
                 Positioned(
                   top: 4,
                   left: 4,
-                  child: _statusPill(product.status),
+                  child: ProductStatusBadge(
+                    status: product.status,
+                    borderRadius: 5,
+                    letterSpacing: 0.3,
+                  ),
                 ),
               ],
             ),
