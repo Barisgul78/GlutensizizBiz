@@ -5,6 +5,12 @@ import '../../../auth/data/services/auth_service.dart';
 import '../../data/services/favorites_service.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/utils/string_utils.dart';
+import '../../../tips/data/models/tip.dart';
+import '../../../tips/data/services/tips_service.dart';
+import '../../../tips/presentation/screens/tip_detail_screen.dart';
+import '../../../tips/presentation/widgets/category_badge.dart';
+import '../../../tips/presentation/widgets/tip_image.dart';
+import '../../../../../core/utils/date_utils.dart' as du;
 
 class FavoritesScreen extends StatefulWidget {
   final Function(Product) onProductSelect;
@@ -36,7 +42,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             _buildTabSwitcher(),
             const SizedBox(height: 12),
             Expanded(
-              child: selectedTab == 'Ürünler' ? _buildProductsList() : _buildVenuesList(),
+              child: selectedTab == 'Ürünler'
+                  ? _buildProductsList()
+                  : selectedTab == 'Mekanlar'
+                      ? _buildVenuesList()
+                      : _buildArticlesList(),
             ),
           ],
         ),
@@ -105,6 +115,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           children: [
             Expanded(child: _tabButton('Ürünler')),
             Expanded(child: _tabButton('Mekanlar')),
+            Expanded(child: _tabButton('Makaleler')),
           ],
         ),
       ),
@@ -229,6 +240,142 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 height: 1.5,
               ),
               textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildArticlesList() {
+    final userId = AuthService.currentUserId;
+
+    if (userId == null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            'Favorilerinizi görmek için\ngiriş yapmanız gerekiyor.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.sourceSans3(
+              color: kOnSurfaceVariant,
+              fontSize: 14,
+              height: 1.6,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return StreamBuilder(
+      stream: FavoritesService.favoritesStream(userId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator(color: kPrimary));
+        }
+
+        final data = snapshot.data;
+        final List<String> tipIds = (data != null && data.exists)
+            ? List<String>.from((data.data() as Map?)?['makale_idleri'] ?? [])
+            : [];
+
+        if (tipIds.isEmpty) {
+          return Center(
+            child: Text(
+              'Kayıtlı makale bulunamadı.',
+              style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 14),
+            ),
+          );
+        }
+
+        final tips = TipsService.getAll().where((t) => tipIds.contains(t.id)).toList();
+
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: tips.length,
+          itemBuilder: (context, index) => _buildArticleCard(tips[index]),
+        );
+      },
+    );
+  }
+
+  Widget _buildArticleCard(Tip tip) {
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => TipDetailScreen(tip: tip)),
+      ),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: kSurface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: kOutlineVariant),
+        ),
+        child: Row(
+          children: [
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    width: 72,
+                    height: 72,
+                    child: TipImage(asset: tip.imageAsset),
+                  ),
+                ),
+                Positioned(
+                  top: 4,
+                  left: 4,
+                  child: CategoryBadge(
+                    label: tip.category,
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    fontSize: 9,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    tip.author.toUpperCase(),
+                    style: GoogleFonts.sourceSans3(
+                      color: kOnSurfaceVariant,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    tip.title,
+                    style: GoogleFonts.plusJakartaSans(
+                      color: kOnSurface,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    du.formatDate(tip.date),
+                    style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            GestureDetector(
+              onTap: () async {
+                await FavoritesService.toggleArticleFavorite(tip.id, isFavorite: true);
+              },
+              child: const Padding(
+                padding: EdgeInsets.all(6),
+                child: Icon(Icons.bookmark_rounded, color: kSecondary, size: 20),
+              ),
             ),
           ],
         ),
