@@ -7,6 +7,7 @@ class FavoritesService {
 
   static const _col = 'favoriler';
   static const _field = 'urun_idleri';
+  static const _articleField = 'makale_idleri';
 
   static Future<bool> isProductFavorite(String productId) async {
     final userId = AuthService.currentUserId;
@@ -39,6 +40,26 @@ class FavoritesService {
 
   static Stream<DocumentSnapshot> favoritesStream(String userId) =>
       FirebaseFirestore.instance.collection(_col).doc(userId).snapshots();
+
+  static Future<bool> isArticleFavorite(String tipId) async {
+    final userId = AuthService.currentUserId;
+    if (userId == null) return false;
+    final doc = await FirebaseFirestore.instance.collection(_col).doc(userId).get();
+    if (!doc.exists) return false;
+    final List ids = doc.data()?[_articleField] ?? [];
+    return ids.contains(tipId);
+  }
+
+  static Future<void> toggleArticleFavorite(String tipId, {required bool isFavorite}) async {
+    final userId = AuthService.currentUserId;
+    if (userId == null) return;
+    final docRef = FirebaseFirestore.instance.collection(_col).doc(userId);
+    if (isFavorite) {
+      await docRef.update({_articleField: FieldValue.arrayRemove([tipId])});
+    } else {
+      await docRef.set({_articleField: FieldValue.arrayUnion([tipId])}, SetOptions(merge: true));
+    }
+  }
 
   static Future<List<Product>> fetchProductsByIds(List<String> ids) async {
     if (ids.isEmpty) return [];
