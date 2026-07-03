@@ -766,6 +766,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           // Mock harita
           GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => VenueMapScreen(
