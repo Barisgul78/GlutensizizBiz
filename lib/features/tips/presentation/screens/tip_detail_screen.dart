@@ -169,6 +169,7 @@ class _TipDetailScreenState extends State<TipDetailScreen> {
         style: GoogleFonts.sourceSans3(
           color: kOnSurfaceVariant,
           fontSize: AppSizes.fontLg - 1,
+          fontWeight: FontWeight.w500,
           height: 1.6,
         ),
       ),
@@ -193,6 +194,7 @@ class _TipDetailScreenState extends State<TipDetailScreen> {
           style: GoogleFonts.sourceSans3(
             color: kOnSurfaceVariant,
             fontSize: AppSizes.fontLg - 1,
+            fontWeight: FontWeight.w500,
             height: 1.6,
           ),
         ),
@@ -209,6 +211,7 @@ class _TipDetailScreenState extends State<TipDetailScreen> {
       style: GoogleFonts.sourceSans3(
         color: kOnSurfaceVariant,
         fontSize: AppSizes.fontSm + 1,
+        fontWeight: FontWeight.w500,
       ),
     );
   }

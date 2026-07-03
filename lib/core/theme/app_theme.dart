@@ -35,18 +35,27 @@ class AppTheme {
           ),
           iconTheme: const IconThemeData(color: kOnSurface),
         ),
-        navigationBarTheme: const NavigationBarThemeData(
+        navigationBarTheme: NavigationBarThemeData(
           backgroundColor: kSurfaceContainerLow,
           indicatorColor: kSurfaceContainerHigh,
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          iconTheme: WidgetStatePropertyAll(
+          iconTheme: const WidgetStatePropertyAll(
             IconThemeData(color: kOnSurfaceVariant),
           ),
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            final selected = states.contains(WidgetState.selected);
+            return GoogleFonts.plusJakartaSans(
+              color: selected ? kOnSurface : kOnSurfaceVariant,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            );
+          }),
         ),
         snackBarTheme: SnackBarThemeData(
           backgroundColor: kInverseSurface,
           contentTextStyle: GoogleFonts.sourceSans3(
             color: kInverseOnSurface,
+            fontWeight: FontWeight.w500,
           ),
         ),
         chipTheme: ChipThemeData(

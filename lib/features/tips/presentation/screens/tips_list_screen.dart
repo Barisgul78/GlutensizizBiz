@@ -123,6 +123,7 @@ class _TipListCard extends StatelessWidget {
                       style: GoogleFonts.sourceSans3(
                         color: kOnSurfaceVariant,
                         fontSize: AppSizes.fontXs + 1,
+                        fontWeight: FontWeight.w500,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

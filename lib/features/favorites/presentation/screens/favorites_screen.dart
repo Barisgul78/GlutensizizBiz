@@ -159,6 +159,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             style: GoogleFonts.sourceSans3(
               color: kOnSurfaceVariant,
               fontSize: 14,
+              fontWeight: FontWeight.w500,
               height: 1.6,
             ),
           ),
@@ -182,7 +183,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           return Center(
             child: Text(
               'Henüz favori ürün eklemediniz.',
-              style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 14),
+              style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 14, fontWeight: FontWeight.w500),
             ),
           );
         }
@@ -198,7 +199,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             if (products.isEmpty) {
               return Center(
                 child: Text('Ürünler yüklenemedi.',
-                    style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant)),
+                    style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontWeight: FontWeight.w500)),
               );
             }
 
@@ -237,6 +238,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               style: GoogleFonts.sourceSans3(
                 color: kOnSurfaceVariant,
                 fontSize: 13,
+                fontWeight: FontWeight.w500,
                 height: 1.5,
               ),
               textAlign: TextAlign.center,
@@ -260,6 +262,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             style: GoogleFonts.sourceSans3(
               color: kOnSurfaceVariant,
               fontSize: 14,
+              fontWeight: FontWeight.w500,
               height: 1.6,
             ),
           ),
@@ -283,7 +286,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           return Center(
             child: Text(
               'Kayıtlı makale bulunamadı.',
-              style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 14),
+              style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 14, fontWeight: FontWeight.w500),
             ),
           );
         }
@@ -363,7 +366,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   const SizedBox(height: 4),
                   Text(
                     du.formatDate(tip.date),
-                    style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 12),
+                    style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 12, fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
@@ -429,7 +432,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   const SizedBox(height: 2),
                   Text(
                     product.brand,
-                    style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 12),
+                    style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 12, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 6),
                   _statusBadge(product.status),

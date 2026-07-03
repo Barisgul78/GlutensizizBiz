@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../search/data/models/product.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../../favorites/data/services/favorites_service.dart';
+import '../../../profile/data/services/stats_service.dart';
 import '../../../../../core/theme/app_colors.dart';
 
 class DetailScreen extends StatefulWidget {
@@ -21,6 +22,10 @@ class _DetailScreenState extends State<DetailScreen> {
   void initState() {
     super.initState();
     _checkIfFavorite();
+    final userId = AuthService.currentUserId;
+    if (userId != null) {
+      StatsService.registerProductClicked(userId, widget.product.id);
+    }
   }
 
   Future<void> _checkIfFavorite() async {

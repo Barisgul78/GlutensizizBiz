@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/utils/snackbars.dart';
+import '../../../auth/data/services/auth_service.dart';
+import '../../../profile/data/services/stats_service.dart';
 
 class VenuesScreen extends StatefulWidget {
   const VenuesScreen({super.key});
@@ -58,6 +61,7 @@ class _VenuesScreenState extends State<VenuesScreen> {
                             style: GoogleFonts.sourceSans3(
                               color: kOnSurfaceVariant,
                               fontSize: 13,
+                              fontWeight: FontWeight.w500,
                               height: 1.5,
                             ),
                             textAlign: TextAlign.center,
@@ -73,6 +77,7 @@ class _VenuesScreenState extends State<VenuesScreen> {
                         ...docs.map((doc) {
                           final data = doc.data() as Map<String, dynamic>;
                           return _buildVenueCard(
+                            venueId: doc.id,
                             imageUrl: data['resim'] ?? '',
                             title: data['ad'] ?? '',
                             description: data['aciklama'] ?? '',
@@ -122,6 +127,7 @@ class _VenuesScreenState extends State<VenuesScreen> {
                   style: GoogleFonts.sourceSans3(
                     color: kOnSurfaceVariant,
                     fontSize: 13,
+                    fontWeight: FontWeight.w500,
                     height: 1.4,
                   ),
                 ),
@@ -158,7 +164,7 @@ class _VenuesScreenState extends State<VenuesScreen> {
           decoration: InputDecoration(
             icon: const Icon(Icons.search, color: kOnSurfaceVariant, size: 20),
             hintText: 'Kafe, fırın veya bölge ara...',
-            hintStyle: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 14),
+            hintStyle: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 14, fontWeight: FontWeight.w500),
             suffixIcon: const Icon(Icons.tune_rounded, color: kOnSurfaceVariant, size: 20),
             border: InputBorder.none,
           ),
@@ -203,7 +209,16 @@ class _VenuesScreenState extends State<VenuesScreen> {
     );
   }
 
+  void _onVenueExplored(BuildContext context, String venueId) {
+    final userId = AuthService.currentUserId;
+    if (userId != null) {
+      StatsService.registerVenueDiscovered(userId, venueId);
+    }
+    showInfoSnackBar(context, 'Yakında');
+  }
+
   Widget _buildVenueCard({
+    required String venueId,
     required String imageUrl,
     required String title,
     required String description,
@@ -314,6 +329,7 @@ class _VenuesScreenState extends State<VenuesScreen> {
                   style: GoogleFonts.sourceSans3(
                     color: kOnSurfaceVariant,
                     fontSize: 13,
+                    fontWeight: FontWeight.w500,
                     height: 1.4,
                   ),
                   maxLines: 2,
@@ -343,7 +359,7 @@ class _VenuesScreenState extends State<VenuesScreen> {
                     const SizedBox(width: 4),
                     Text(
                       '$distance • $location',
-                      style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 12),
+                      style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 12, fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
@@ -352,7 +368,7 @@ class _VenuesScreenState extends State<VenuesScreen> {
                   children: [
                     Expanded(
                       child: FilledButton(
-                        onPressed: () {},
+                        onPressed: () => _onVenueExplored(context, venueId),
                         style: FilledButton.styleFrom(
                           backgroundColor: kPrimary,
                           foregroundColor: kOnPrimary,

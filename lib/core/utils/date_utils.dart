@@ -7,3 +7,5 @@ String formatDate(DateTime date) =>
     '${date.day} ${_months[date.month]} ${date.year}';
 
 String formatMonthYear(DateTime date) => '${_months[date.month]} ${date.year}';
+
+String monthName(int month) => _months[month];

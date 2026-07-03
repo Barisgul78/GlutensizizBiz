@@ -235,13 +235,14 @@ class _RehberScreenState extends State<RehberScreen> {
               controller: _searchCtrl,
               onChanged: (v) => setState(() => _query = v),
               style: GoogleFonts.sourceSans3(
-                  color: kOnSurface, fontSize: AppSizes.fontMd),
+                  color: kOnSurface, fontSize: AppSizes.fontMd, fontWeight: FontWeight.w500),
               decoration: InputDecoration(
                 border: InputBorder.none,
                 hintText: 'Konularda ara...',
                 hintStyle: GoogleFonts.sourceSans3(
                   color: kOnSurfaceVariant,
                   fontSize: AppSizes.fontMd,
+                  fontWeight: FontWeight.w500,
                 ),
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
@@ -356,6 +357,7 @@ class _RehberScreenState extends State<RehberScreen> {
                           style: GoogleFonts.sourceSans3(
                             color: kOnSurfaceVariant,
                             fontSize: AppSizes.fontXs + 2,
+                            fontWeight: FontWeight.w500,
                             height: 1.4,
                           ),
                           maxLines: 2,
@@ -389,6 +391,7 @@ class _RehberScreenState extends State<RehberScreen> {
             style: GoogleFonts.sourceSans3(
               color: kOnSurfaceVariant,
               fontSize: AppSizes.fontMd,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

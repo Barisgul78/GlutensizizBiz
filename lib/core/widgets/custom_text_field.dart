@@ -50,10 +50,10 @@ class AppTextField extends StatelessWidget {
       textInputAction: textInputAction,
       focusNode: focusNode,
       autofillHints: autofillHints,
-      style: GoogleFonts.sourceSans3(color: kOnSurface, fontSize: AppSizes.fontLg - 1),
+      style: GoogleFonts.sourceSans3(color: kOnSurface, fontSize: AppSizes.fontLg - 1, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: GoogleFonts.sourceSans3(color: kOnSurfaceVariant),
+        labelStyle: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontWeight: FontWeight.w500),
         prefixIcon: icon != null
             ? Icon(icon, color: kOnSurfaceVariant, size: AppSizes.iconSm + 4)
             : null,

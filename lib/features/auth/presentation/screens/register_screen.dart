@@ -97,6 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: GoogleFonts.sourceSans3(
                     color: kOnSurfaceVariant,
                     fontSize: 15,
+                    fontWeight: FontWeight.w500,
                     height: 1.5,
                   ),
                 ),
@@ -181,6 +182,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         style: GoogleFonts.sourceSans3(
                           color: kOnSurfaceVariant,
                           fontSize: 14,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       GestureDetector(

@@ -14,3 +14,17 @@ void showErrorSnackBar(BuildContext context, String message) {
     ),
   );
 }
+
+// Bilgilendirme mesajı için standart snackbar (örn. henüz yapılmamış özellik)
+void showInfoSnackBar(BuildContext context, String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(message,
+          style: GoogleFonts.plusJakartaSans(color: kOnSurface)),
+      backgroundColor: kSurfaceContainerHigh,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.all(16),
+    ),
+  );
+}

@@ -44,6 +44,7 @@ class SplashScreen extends StatelessWidget {
               AppStrings.appSlogan,
               style: GoogleFonts.sourceSans3(
                 fontSize: AppSizes.fontMd,
+                fontWeight: FontWeight.w500,
                 color: Colors.white.withValues(alpha: 0.8),
               ),
             ),

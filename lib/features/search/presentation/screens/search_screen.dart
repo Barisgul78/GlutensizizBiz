@@ -6,6 +6,7 @@ import '../../data/services/search_service.dart';
 import '../../../product_detail/presentation/screens/detail_screen.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../../favorites/data/services/favorites_service.dart';
+import '../../../profile/data/services/stats_service.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../widgets/product_status_badge.dart';
 
@@ -96,6 +97,13 @@ class _SearchScreenState extends State<SearchScreen> {
     await prefs.setStringList('recentSearches', recentSearches);
   }
 
+  void _onSearchSubmitted(String value) {
+    final userId = AuthService.currentUserId;
+    if (userId != null && value.trim().isNotEmpty) {
+      StatsService.incrementSearchCount(userId);
+    }
+  }
+
   Future<void> _clearSearches() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('recentSearches');
@@ -159,6 +167,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   style: GoogleFonts.sourceSans3(
                     color: kOnSurfaceVariant,
                     fontSize: 13,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -195,11 +204,12 @@ class _SearchScreenState extends State<SearchScreen> {
             Expanded(
               child: TextField(
                 controller: _searchController,
-                style: GoogleFonts.sourceSans3(color: kOnSurface, fontSize: 15),
+                style: GoogleFonts.sourceSans3(color: kOnSurface, fontSize: 15, fontWeight: FontWeight.w500),
                 onChanged: (val) => setState(() => query = val.trim().toLowerCase()),
+                onSubmitted: _onSearchSubmitted,
                 decoration: InputDecoration(
                   hintText: 'Ürün, marka veya kategori...',
-                  hintStyle: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 15),
+                  hintStyle: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 15, fontWeight: FontWeight.w500),
                   border: InputBorder.none,
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(vertical: 14),
@@ -270,7 +280,7 @@ class _SearchScreenState extends State<SearchScreen> {
               GestureDetector(
                 onTap: _clearSearches,
                 child: Text('Temizle',
-                    style: GoogleFonts.sourceSans3(color: kPrimary, fontSize: 13)),
+                    style: GoogleFonts.sourceSans3(color: kPrimary, fontSize: 13, fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -303,7 +313,7 @@ class _SearchScreenState extends State<SearchScreen> {
             const Icon(Icons.history, color: kOnSurfaceVariant, size: 14),
             const SizedBox(width: 6),
             Text(text,
-                style: GoogleFonts.sourceSans3(color: kOnSurface, fontSize: 13)),
+                style: GoogleFonts.sourceSans3(color: kOnSurface, fontSize: 13, fontWeight: FontWeight.w500)),
           ],
         ),
       ),
@@ -338,7 +348,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 return Text(
                   'Henüz ürün eklenmemiş.',
                   style: GoogleFonts.sourceSans3(
-                      color: kOnSurfaceVariant, fontSize: 14),
+                      color: kOnSurfaceVariant, fontSize: 14, fontWeight: FontWeight.w500),
                 );
               }
               return Column(
@@ -487,7 +497,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 Text(
                   'Ürünler yüklenirken bir hata oluştu.',
                   style: GoogleFonts.sourceSans3(
-                      color: kOnSurfaceVariant, fontSize: 14),
+                      color: kOnSurfaceVariant, fontSize: 14, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 8),
                 TextButton(
@@ -520,7 +530,7 @@ class _SearchScreenState extends State<SearchScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             child: Text(
               '"$query" ile eşleşen ürün bulunamadı.',
-              style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 14),
+              style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 14, fontWeight: FontWeight.w500),
             ),
           );
         }
@@ -532,7 +542,7 @@ class _SearchScreenState extends State<SearchScreen> {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
               child: Text(
                 '${results.length} sonuç',
-                style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 13),
+                style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 13, fontWeight: FontWeight.w500),
               ),
             ),
             ListView.builder(
@@ -564,9 +574,15 @@ class _SearchScreenState extends State<SearchScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: kSurface,
+          color: kOnPrimary,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: kOutlineVariant),
+          boxShadow: [
+            BoxShadow(
+              color: kOnSurface.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
@@ -626,7 +642,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   const SizedBox(height: 4),
                   Text(
                     product.category,
-                    style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 12),
+                    style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 12, fontWeight: FontWeight.w500),
                   ),
                 ],
               ),

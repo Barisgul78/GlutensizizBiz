@@ -4,8 +4,10 @@ import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/search/presentation/screens/search_screen.dart';
 import '../../features/favorites/presentation/screens/favorites_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/profile/data/services/stats_service.dart';
 import '../../features/tips/presentation/screens/rehber_screen.dart';
 import '../../features/search/data/models/product.dart';
+import '../../features/auth/data/services/auth_service.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -26,6 +28,10 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
+    final userId = AuthService.currentUserId;
+    if (userId != null) {
+      StatsService.registerDailyVisit(userId);
+    }
     _pages = [
       HomeScreen(onTabChange: _navigateToTab), // 0 - Anasayfa
       const SearchScreen(),                    // 1 - Ara

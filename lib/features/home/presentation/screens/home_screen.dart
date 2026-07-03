@@ -270,6 +270,7 @@ class _HomeScreenState extends State<HomeScreen> {
           style: GoogleFonts.sourceSans3(
             color: kOnSurfaceVariant,
             fontSize: AppSizes.fontLg - 1,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
@@ -323,6 +324,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: GoogleFonts.sourceSans3(
                   color: kOnSurface,
                   fontSize: AppSizes.fontMd,
+                  fontWeight: FontWeight.w500,
                 ),
                 decoration: InputDecoration(
                   border: InputBorder.none,
@@ -330,6 +332,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   hintStyle: GoogleFonts.sourceSans3(
                     color: kOnSurfaceVariant,
                     fontSize: AppSizes.fontMd,
+                    fontWeight: FontWeight.w500,
                   ),
                   isDense: true,
                   contentPadding: EdgeInsets.zero,
@@ -467,6 +470,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: GoogleFonts.sourceSans3(
                       color: kOnSurfaceVariant,
                       fontSize: AppSizes.fontXs + 1,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -509,6 +513,7 @@ class _HomeScreenState extends State<HomeScreen> {
             style: GoogleFonts.sourceSans3(
               color: kOnSurfaceVariant,
               fontSize: AppSizes.fontXs + 1,
+              fontWeight: FontWeight.w500,
             ),
             textAlign: TextAlign.center,
             maxLines: 2,
@@ -661,6 +666,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: GoogleFonts.sourceSans3(
                       color: kOnSurfaceVariant,
                       fontSize: AppSizes.fontSm + 1,
+                      fontWeight: FontWeight.w500,
                       height: 1.5,
                     ),
                     maxLines: 2,
@@ -672,6 +678,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: GoogleFonts.sourceSans3(
                       color: kOnSurfaceVariant,
                       fontSize: AppSizes.fontXs + 1,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -741,6 +748,7 @@ class _HomeScreenState extends State<HomeScreen> {
             style: GoogleFonts.sourceSans3(
               color: kOnSurfaceVariant,
               fontSize: AppSizes.fontXs + 1,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -874,6 +882,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: GoogleFonts.sourceSans3(
                     color: kOnSurfaceVariant,
                     fontSize: AppSizes.fontXs + 1,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -981,6 +990,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: GoogleFonts.sourceSans3(
                           color: kOnSurfaceVariant,
                           fontSize: AppSizes.fontXs + 1,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -993,6 +1003,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: GoogleFonts.sourceSans3(
                   color: kOnSurfaceVariant,
                   fontSize: AppSizes.fontMd,
+                  fontWeight: FontWeight.w500,
                   height: 1.5,
                 ),
               ),
