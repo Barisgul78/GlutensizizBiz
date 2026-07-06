@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme/app_theme.dart';
@@ -43,6 +44,14 @@ class MyApp extends StatelessWidget {
       title: 'GluFree',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      // Şimdilik sabit TR; dinamik dil değişimi ayrı bir iş (LocaleProvider)
+      locale: const Locale('tr'),
+      supportedLocales: const [Locale('tr'), Locale('en')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: home,
     );
   }

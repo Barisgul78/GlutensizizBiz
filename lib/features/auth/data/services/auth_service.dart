@@ -16,25 +16,39 @@ class AuthService {
   // Auth durum stream'i — uygulama genelinde dinlenebilir
   static Stream<User?> get authStateChanges => _auth.authStateChanges();
 
+  // ── Kullanıcı adı müsaitlik kontrolü ────────────────────────────────────────
+  // where sorgusu kullanılmaz — sadece doküman ID'si ile tekil get() yapılır.
+  static Future<bool> isUsernameTaken(String username) async {
+    final doc = await _db.collection(kUsernamesCollection).doc(username).get();
+    return doc.exists;
+  }
+
   // ── Kayıt ──────────────────────────────────────────────────────────────────
   static Future<UserCredential> signUp({
     required String email,
     required String password,
     required String displayName,
+    required DateTime birthDate,
+    required String username,
   }) async {
     final cred = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
     await cred.user!.updateDisplayName(displayName);
-    // Firestore profil belgesi — başarısız olsa bile auth geçerli
+    // Firestore profil belgesi ve kullanıcı adı rezervasyonu — başarısız olsa bile auth geçerli
     try {
       await _db.collection(kUsersCollection).doc(cred.user!.uid).set({
         'ad': displayName,
         'email': email,
         'fotoURL': null,
+        'dogumTarihi': Timestamp.fromDate(birthDate),
+        'kullaniciAdi': username,
         'olusturmaTarihi': FieldValue.serverTimestamp(),
         'anonim': false,
+      });
+      await _db.collection(kUsernamesCollection).doc(username).set({
+        'uid': cred.user!.uid,
       });
     } catch (e) {
       debugPrint('Firestore kullanıcı belgesi oluşturulamadı: $e');

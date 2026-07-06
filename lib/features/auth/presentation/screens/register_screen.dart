@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,6 +9,10 @@ import '../../../../../core/widgets/custom_text_field.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/utils/snackbars.dart';
 import '../../data/services/auth_service.dart';
+
+enum _UsernameStatus { idle, invalid, checking, available, taken }
+
+final _usernameRegex = RegExp(r'^[a-z0-9_]{3,20}$');
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -18,21 +24,91 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
+  final _usernameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
+  final _birthDateCtrl = TextEditingController();
 
+  DateTime? _birthDate;
   bool _loading = false;
   bool _showPass = false;
   bool _showConfirm = false;
+  _UsernameStatus _usernameStatus = _UsernameStatus.idle;
+  Timer? _debounce;
 
   @override
   void dispose() {
     _nameCtrl.dispose();
+    _usernameCtrl.dispose();
     _emailCtrl.dispose();
     _passCtrl.dispose();
     _confirmCtrl.dispose();
+    _birthDateCtrl.dispose();
+    _debounce?.cancel();
     super.dispose();
+  }
+
+  void _onUsernameChanged(String value) {
+    _debounce?.cancel();
+    final username = value.trim().toLowerCase();
+    if (username.isEmpty) {
+      setState(() => _usernameStatus = _UsernameStatus.idle);
+      return;
+    }
+    if (!_usernameRegex.hasMatch(username)) {
+      setState(() => _usernameStatus = _UsernameStatus.invalid);
+      return;
+    }
+    setState(() => _usernameStatus = _UsernameStatus.checking);
+    _debounce = Timer(const Duration(milliseconds: 500), () => _checkUsername(username));
+  }
+
+  Future<void> _checkUsername(String username) async {
+    final taken = await AuthService.isUsernameTaken(username);
+    if (!mounted) return;
+    // Kullanıcı bu arada yazmaya devam ettiyse eski sonucu uygulama
+    if (_usernameCtrl.text.trim().toLowerCase() != username) return;
+    setState(() {
+      _usernameStatus = taken ? _UsernameStatus.taken : _UsernameStatus.available;
+    });
+  }
+
+  Widget? _usernameSuffixIcon() {
+    switch (_usernameStatus) {
+      case _UsernameStatus.checking:
+        return const Padding(
+          padding: EdgeInsets.all(14),
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        );
+      case _UsernameStatus.available:
+        return const Icon(Icons.check_circle, color: kBadgeSuccess);
+      case _UsernameStatus.taken:
+      case _UsernameStatus.invalid:
+        return const Icon(Icons.cancel, color: kError);
+      case _UsernameStatus.idle:
+        return null;
+    }
+  }
+
+  Future<void> _pickBirthDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime(now.year - 18, now.month, now.day),
+      firstDate: DateTime(1900),
+      lastDate: now,
+    );
+    if (picked == null) return;
+    setState(() {
+      _birthDate = picked;
+      _birthDateCtrl.text =
+          '${picked.day.toString().padLeft(2, '0')}.${picked.month.toString().padLeft(2, '0')}.${picked.year}';
+    });
   }
 
   Future<void> _register() async {
@@ -43,6 +119,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         email: _emailCtrl.text.trim(),
         password: _passCtrl.text,
         displayName: _nameCtrl.text.trim(),
+        birthDate: _birthDate!,
+        username: _usernameCtrl.text.trim().toLowerCase(),
       );
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
@@ -115,6 +193,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 14),
 
+                // Kullanıcı Adı
+                AppTextField(
+                  controller: _usernameCtrl,
+                  label: 'Kullanıcı Adı',
+                  icon: Icons.alternate_email_rounded,
+                  onChanged: _onUsernameChanged,
+                  suffixIcon: _usernameSuffixIcon(),
+                  validator: (v) {
+                    final username = v?.trim().toLowerCase() ?? '';
+                    if (username.isEmpty) return 'Kullanıcı adı gerekli.';
+                    if (!_usernameRegex.hasMatch(username)) {
+                      return '3-20 karakter, sadece harf/rakam/_ kullanılabilir.';
+                    }
+                    if (_usernameStatus == _UsernameStatus.checking) {
+                      return 'Kullanılabilirlik kontrol ediliyor...';
+                    }
+                    if (_usernameStatus == _UsernameStatus.taken) {
+                      return 'Bu kullanıcı adı alınmış.';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 14),
+
                 // E-posta
                 AppTextField(
                   controller: _emailCtrl,
@@ -159,6 +261,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   validator: (v) {
                     if (v != _passCtrl.text) return 'Şifreler eşleşmiyor.';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 14),
+
+                // Doğum tarihi
+                AppTextField(
+                  controller: _birthDateCtrl,
+                  label: 'Doğum Tarihi',
+                  icon: Icons.cake_outlined,
+                  readOnly: true,
+                  onTap: _pickBirthDate,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Doğum tarihi gerekli.';
                     return null;
                   },
                 ),

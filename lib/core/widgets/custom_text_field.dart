@@ -18,6 +18,8 @@ class AppTextField extends StatelessWidget {
     this.textInputAction,
     this.focusNode,
     this.autofillHints,
+    this.readOnly = false,
+    this.onTap,
   });
 
   final TextEditingController controller;
@@ -31,6 +33,8 @@ class AppTextField extends StatelessWidget {
   final TextInputAction? textInputAction;
   final FocusNode? focusNode;
   final Iterable<String>? autofillHints;
+  final bool readOnly;
+  final VoidCallback? onTap;
 
   static OutlineInputBorder _border(Color color, double width) => OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppSizes.radiusLg - 2),
@@ -50,6 +54,8 @@ class AppTextField extends StatelessWidget {
       textInputAction: textInputAction,
       focusNode: focusNode,
       autofillHints: autofillHints,
+      readOnly: readOnly,
+      onTap: onTap,
       style: GoogleFonts.sourceSans3(color: kOnSurface, fontSize: AppSizes.fontLg - 1, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         labelText: label,

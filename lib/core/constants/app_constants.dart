@@ -6,6 +6,7 @@ const String kFavorilerCollection = 'favoriler';
 const String kUrunlerCollection = 'urunler';
 const String kMekanlarCollection = 'mekanlar';
 const String kUsersCollection = 'users';
+const String kUsernamesCollection = 'usernames';
 
 // Uygulama limitleri
 const int kOnboardingPageCount = 3;
