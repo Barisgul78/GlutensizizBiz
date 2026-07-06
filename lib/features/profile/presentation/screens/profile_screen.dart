@@ -7,7 +7,9 @@ import '../../../../../core/utils/string_utils.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../../auth/presentation/screens/sign_screen.dart';
 import '../widgets/health_journey_card.dart';
+import '../widgets/profile_ui.dart';
 import '../widgets/stats_section.dart';
+import 'settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -16,18 +18,37 @@ class ProfileScreen extends StatelessWidget {
     _QuickAction(Icons.edit_outlined, 'Profili\nDüzenle'),
     _QuickAction(Icons.badge_outlined, 'Sağlık\nKartım'),
     _QuickAction(Icons.military_tech_outlined, 'Rozetlerim'),
-    _QuickAction(Icons.settings_outlined, 'Ayarlar'),
   ];
 
   static const _badges = [
-    _Badge(Icons.center_focus_strong_outlined, 'İlk Tarama', '47 ürün tarandı',
-        kPastelGreen, true),
-    _Badge(Icons.explore_outlined, 'Kaşif', '12 mekan keşfedildi',
-        kPastelOrange, true),
-    _Badge(Icons.menu_book_outlined, 'Rehber Kurdu', '23 makale okundu',
-        kPastelBlue, true),
-    _Badge(Icons.lock_outline, 'Tarif Ustası', '5 tarif ekle',
-        kSurfaceContainerHigh, false),
+    _Badge(
+      icon: Icons.center_focus_strong_outlined,
+      title: 'İlk Tarama',
+      subtitle: '47 ürün tarandı',
+      bgColor: kPastelGreen,
+      unlocked: true,
+    ),
+    _Badge(
+      icon: Icons.explore_outlined,
+      title: 'Kaşif',
+      subtitle: '12 mekan keşfedildi',
+      bgColor: kPastelOrange,
+      unlocked: true,
+    ),
+    _Badge(
+      icon: Icons.menu_book_outlined,
+      title: 'Rehber Kurdu',
+      subtitle: '23 makale okundu',
+      bgColor: kPastelBlue,
+      unlocked: true,
+    ),
+    _Badge(
+      icon: Icons.lock_outline,
+      title: 'Tarif Ustası',
+      subtitle: '5 tarif ekle',
+      bgColor: kSurfaceContainerHigh,
+      unlocked: false,
+    ),
   ];
 
   Future<void> _signOut(BuildContext context) async {
@@ -38,34 +59,6 @@ class ProfileScreen extends StatelessWidget {
       (_) => false,
     );
   }
-
-  static BoxDecoration _cardDecoration({
-    Color color = kOnPrimary,
-    Color? borderColor,
-    double radius = 16,
-  }) {
-    return BoxDecoration(
-      color: color,
-      borderRadius: BorderRadius.circular(radius),
-      border: borderColor != null ? Border.all(color: borderColor) : null,
-      boxShadow: borderColor == null
-          ? [
-              BoxShadow(
-                color: kOnSurface.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ]
-          : null,
-    );
-  }
-
-  static Widget _sectionDivider() => Divider(
-        height: 1,
-        indent: 20,
-        endIndent: 20,
-        color: kOutlineVariant.withValues(alpha: 0.6),
-      );
 
   @override
   Widget build(BuildContext context) {
@@ -92,21 +85,21 @@ class ProfileScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
-                    _buildSectionTitle('SAĞLIK PROFİLİM'),
+                    sectionTitle('SAĞLIK PROFİLİM'),
                     const SizedBox(height: 10),
                     const HealthJourneyCard(),
                     const SizedBox(height: 24),
-                    _buildSectionTitle('ROZETLERİM'),
+                    sectionTitle('ROZETLERİM'),
                     const SizedBox(height: 10),
                     _buildBadgesGrid(),
                     const SizedBox(height: 24),
-                    _buildSectionTitle('İSTATİSTİKLERİM'),
+                    sectionTitle('İSTATİSTİKLERİM'),
                     const SizedBox(height: 10),
                     const StatsSection(),
                     const SizedBox(height: 24),
-                    _buildSectionTitle('UYGULAMA'),
+                    sectionTitle('UYGULAMA'),
                     const SizedBox(height: 10),
-                    _buildSettingsGroup([
+                    _buildSettingsGroup(context, [
                       const _SettingsItem(
                         icon: Icons.notifications_outlined,
                         iconBgColor: kSurfaceContainerHigh,
@@ -137,16 +130,26 @@ class ProfileScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: SizedBox(
-        height: 32,
-        child: Stack(
-          alignment: Alignment.center,
+        height: 48,
+        child: Row(
           children: [
-            Text(
-              'Profil',
-              style: GoogleFonts.plusJakartaSans(
-                color: kOnSurface,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
+            const SizedBox(width: 48),
+            Expanded(
+              child: Center(
+                child: Text(
+                  'Profil',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: kOnSurface,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.settings_outlined, color: kOnSurface),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
               ),
             ),
           ],
@@ -215,24 +218,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          title,
-          style: GoogleFonts.plusJakartaSans(
-            color: kOnSurfaceVariant,
-            fontWeight: FontWeight.bold,
-            fontSize: 12,
-            letterSpacing: 0.6,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildQuickActions(BuildContext context) {
     return Row(
       children: _quickActions
@@ -243,7 +228,7 @@ class ProfileScreen extends StatelessWidget {
                     onTap: () => showInfoSnackBar(context, 'Yakında'),
                     child: Container(
                       height: 88,
-                      decoration: _cardDecoration(radius: 14),
+                      decoration: cardDecoration(radius: 14),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -270,61 +255,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // Sağlık profili satırı ve ayarlar satırı için ortak ikon+başlık+alt yazı düzeni
-  Widget _buildIconRow({
-    required IconData icon,
-    required Color iconBgColor,
-    required String title,
-    String? subtitle,
-    Widget? trailing,
-    bool showChevron = true,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration:
-                BoxDecoration(color: iconBgColor, shape: BoxShape.circle),
-            child: Icon(icon, color: kPrimary, size: 20),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.plusJakartaSans(
-                    color: kOnSurface,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.sourceSans3(
-                        color: kOnSurfaceVariant, fontSize: 12, fontWeight: FontWeight.w500),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-                if (trailing != null) trailing,
-              ],
-            ),
-          ),
-          if (showChevron)
-            const Icon(Icons.chevron_right, color: kOutlineVariant, size: 20),
-        ],
-      ),
-    );
-  }
-
   Widget _buildBadgesGrid() {
     return GridView.count(
       crossAxisCount: 2,
@@ -336,7 +266,7 @@ class ProfileScreen extends StatelessWidget {
       children: _badges.map((b) {
         return Container(
           padding: const EdgeInsets.all(14),
-          decoration: _cardDecoration(),
+          decoration: cardDecoration(),
           child: Opacity(
             opacity: b.unlocked ? 1 : 0.5,
             child: Column(
@@ -382,22 +312,22 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSettingsGroup(List<_SettingsItem> items) {
+  Widget _buildSettingsGroup(BuildContext context, List<_SettingsItem> items) {
     return Container(
-      decoration: _cardDecoration(),
+      decoration: cardDecoration(),
       child: Column(
         children: items.asMap().entries.map((entry) {
           final index = entry.key;
           final item = entry.value;
           return Column(
             children: [
-              _buildIconRow(
+              IconRow(
                 icon: item.icon,
                 iconBgColor: item.iconBgColor,
                 title: item.title,
                 subtitle: item.subtitle,
               ),
-              if (index < items.length - 1) _sectionDivider(),
+              if (index < items.length - 1) sectionDivider(),
             ],
           );
         }).toList(),
@@ -409,34 +339,16 @@ class ProfileScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () => _signOut(context),
       child: Container(
-        decoration: _cardDecoration(
+        decoration: cardDecoration(
           color: kErrorContainer,
           borderColor: kError.withValues(alpha: 0.3),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: kError.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.logout, color: kError, size: 20),
-              ),
-              const SizedBox(width: 14),
-              Text(
-                'Çıkış Yap',
-                style: GoogleFonts.plusJakartaSans(
-                  color: kError,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
-            ],
-          ),
+        child: IconRow(
+          icon: Icons.logout,
+          iconBgColor: kError.withValues(alpha: 0.12),
+          title: 'Çıkış Yap',
+          showChevron: false,
+          titleColor: kError,
         ),
       ),
     );
@@ -471,6 +383,11 @@ class _Badge {
   final Color bgColor;
   final bool unlocked;
 
-  const _Badge(
-      this.icon, this.title, this.subtitle, this.bgColor, this.unlocked);
+  const _Badge({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.bgColor,
+    required this.unlocked,
+  });
 }

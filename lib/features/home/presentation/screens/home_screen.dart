@@ -25,13 +25,6 @@ import '../../../product_detail/presentation/screens/detail_screen.dart';
 // Veri modelleri — mock, ileride Firestore'a taşınacak
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _QuickCategory {
-  final String label;
-  final IconData icon;
-  final Color bgColor;
-  const _QuickCategory(this.label, this.icon, this.bgColor);
-}
-
 class _PopularTopic {
   final String name;
   final String articleCount;
@@ -52,18 +45,15 @@ class _Venue {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const _quickCategories = [
-  _QuickCategory('Yakındakiler', Icons.location_on_outlined, kPastelGreen),
-  _QuickCategory('Yeni Ürünler', Icons.new_releases_outlined, kPastelBlue),
-  _QuickCategory('Riskli İçerik', Icons.warning_amber_outlined, kPastelRed),
-  _QuickCategory('Kampanyalar', Icons.local_offer_outlined, kPastelYellow),
-];
-
 const _popularTopics = [
-  _PopularTopic('Çölyak Hastalığı', '12 makale', kPastelGreen, Icons.eco_rounded),
-  _PopularTopic('Glutensiz Tarifler', '6 makale', kPastelBlue, Icons.restaurant_menu_rounded),
-  _PopularTopic('Belediye Destekleri', '9 makale', kPastelOrange, Icons.account_balance_rounded),
-  _PopularTopic('Güncel Haberler', '11 makale', kPastelPink, Icons.newspaper_rounded),
+  _PopularTopic(
+      'Çölyak Hastalığı', '12 makale', kPastelGreen, Icons.eco_rounded),
+  _PopularTopic('Glutensiz Tarifler', '6 makale', kPastelBlue,
+      Icons.restaurant_menu_rounded),
+  _PopularTopic('Belediye Destekleri', '9 makale', kPastelOrange,
+      Icons.account_balance_rounded),
+  _PopularTopic(
+      'Güncel Haberler', '11 makale', kPastelPink, Icons.newspaper_rounded),
 ];
 
 const _mockVenues = [
@@ -155,14 +145,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildGreeting(),
                   const SizedBox(height: AppSizes.md),
                   _buildTypeAheadSearch(),
-                  const SizedBox(height: AppSizes.lg),
-                  _buildQuickCategories(),
                   const SizedBox(height: AppSizes.xl),
                   _buildSectionHeader(
                     'Günün İpucu',
                     onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                          builder: (_) => const TipsListScreen()),
+                      MaterialPageRoute(builder: (_) => const TipsListScreen()),
                     ),
                   ),
                   const SizedBox(height: AppSizes.sm + 4),
@@ -178,8 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildSectionHeader(
                     'Yakınındaki Mekanlar',
                     onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                          builder: (_) => const VenuesScreen()),
+                      MaterialPageRoute(builder: (_) => const VenuesScreen()),
                     ),
                   ),
                   const SizedBox(height: AppSizes.sm + 4),
@@ -216,7 +202,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Center(
               child: Text(
-                initials(AuthService.isAnonymous ? null : AuthService.currentUser?.displayName),
+                initials(AuthService.isAnonymous
+                    ? null
+                    : AuthService.currentUser?.displayName),
                 style: GoogleFonts.plusJakartaSans(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -481,46 +469,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  // ── Hızlı Kategoriler ─────────────────────────────────────────────────────
-  Widget _buildQuickCategories() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children:
-          _quickCategories.map((cat) => _quickCategoryButton(cat)).toList(),
-    );
-  }
-
-  Widget _quickCategoryButton(_QuickCategory cat) {
-    return Column(
-      children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: cat.bgColor,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(cat.icon, color: kOnSurfaceVariant, size: 24),
-        ),
-        const SizedBox(height: AppSizes.xs),
-        SizedBox(
-          width: 72,
-          child: Text(
-            cat.label,
-            style: GoogleFonts.sourceSans3(
-              color: kOnSurfaceVariant,
-              fontSize: AppSizes.fontXs + 1,
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
     );
   }
 
@@ -906,136 +854,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Text(
-              'Haftanın Markası',
-              style: GoogleFonts.plusJakartaSans(
-                color: kOnSurface,
-                fontSize: AppSizes.fontXl - 1,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(width: AppSizes.sm),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.sm + 2, vertical: 3),
-              decoration: BoxDecoration(
-                color: kPrimary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(AppSizes.radiusFull),
-              ),
-              child: Text(
-                'Önerilen',
-                style: GoogleFonts.plusJakartaSans(
-                  color: kPrimary,
-                  fontSize: AppSizes.fontXs + 1,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
         const SizedBox(height: AppSizes.sm + 4),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(AppSizes.md),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-            boxShadow: [
-              BoxShadow(
-                color: kOnSurface.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: const BoxDecoration(
-                      color: kPrimary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        'N',
-                        style: GoogleFonts.plusJakartaSans(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppSizes.sm + 4),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Nustil',
-                        style: GoogleFonts.plusJakartaSans(
-                          color: kOnSurface,
-                          fontSize: AppSizes.fontXl - 1,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Glutensiz Marka',
-                        style: GoogleFonts.sourceSans3(
-                          color: kOnSurfaceVariant,
-                          fontSize: AppSizes.fontXs + 1,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSizes.sm + 4),
-              Text(
-                'Tamamen glutensiz üretim hattı ile güvenli ürünler.',
-                style: GoogleFonts.sourceSans3(
-                  color: kOnSurfaceVariant,
-                  fontSize: AppSizes.fontMd,
-                  fontWeight: FontWeight.w500,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: AppSizes.sm + 4),
-              Wrap(
-                spacing: AppSizes.xs + 2,
-                runSpacing: AppSizes.xs,
-                children: ['Ekmek', 'Makarna', 'Kraker', 'Yulaf']
-                    .map(
-                      (tag) => Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppSizes.sm + 2, vertical: AppSizes.xs),
-                        decoration: BoxDecoration(
-                          color: kSurfaceContainerHigh,
-                          borderRadius:
-                              BorderRadius.circular(AppSizes.radiusFull),
-                        ),
-                        child: Text(
-                          tag,
-                          style: GoogleFonts.sourceSans3(
-                            color: kOnSurfaceVariant,
-                            fontSize: AppSizes.fontXs + 1,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    )
-                    .toList(),
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }
