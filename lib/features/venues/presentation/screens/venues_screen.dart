@@ -5,6 +5,8 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/utils/snackbars.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../../profile/data/services/stats_service.dart';
+import '../../data/models/venue.dart';
+import '../../data/services/venues_service.dart';
 
 class VenuesScreen extends StatefulWidget {
   const VenuesScreen({super.key});
@@ -15,6 +17,77 @@ class VenuesScreen extends StatefulWidget {
 
 class _VenuesScreenState extends State<VenuesScreen> {
   String selectedFilter = 'Tüm Mekanlar';
+  final ScrollController _scrollController = ScrollController();
+
+  List<Venue> _venues = [];
+  DocumentSnapshot? _lastDoc;
+  bool _hasMore = true;
+  bool _loading = true;
+  bool _loadingMore = false;
+  Object? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+    _loadInitial();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_hasMore || _loading || _loadingMore) return;
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMore();
+    }
+  }
+
+  Future<void> _loadInitial() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final page = await VenuesService.fetchPage();
+      if (!mounted) return;
+      setState(() {
+        _venues = page.items;
+        _lastDoc = page.lastDocument;
+        _hasMore = page.hasMore;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e;
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _loadMore() async {
+    setState(() => _loadingMore = true);
+    try {
+      final page = await VenuesService.fetchPage(startAfter: _lastDoc);
+      if (!mounted) return;
+      setState(() {
+        _venues = [..._venues, ...page.items];
+        _lastDoc = page.lastDocument;
+        _hasMore = page.hasMore;
+        _loadingMore = false;
+      });
+    } catch (e) {
+      debugPrint('Sonraki mekan sayfası yüklenemedi: $e');
+      if (!mounted) return;
+      setState(() => _loadingMore = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,82 +95,112 @@ class _VenuesScreenState extends State<VenuesScreen> {
       backgroundColor: kBackground,
       body: SafeArea(
         child: CustomScrollView(
+          controller: _scrollController,
           slivers: [
             SliverToBoxAdapter(child: _buildHeader()),
             SliverToBoxAdapter(child: _buildSearchBar()),
             SliverToBoxAdapter(child: _buildFilterChips()),
             const SliverPadding(padding: EdgeInsets.only(top: 8)),
-            SliverToBoxAdapter(
-              child: FutureBuilder<QuerySnapshot>(
-                future: FirebaseFirestore.instance.collection('mekanlar').get(),
-                builder: (context, snap) {
-                  if (snap.connectionState == ConnectionState.waiting) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 60),
-                      child: Center(child: CircularProgressIndicator(color: kPrimary)),
-                    );
-                  }
-                  final docs = snap.data?.docs ?? [];
-                  if (docs.isEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 60),
-                      child: Column(
-                        children: [
-                          const Icon(Icons.location_off_outlined,
-                              color: kOutlineVariant, size: 52),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Henüz mekan eklenmemiş',
-                            style: GoogleFonts.plusJakartaSans(
-                              color: kOnSurface,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Yakında glutensiz dostu mekanlar burada görünecek.',
-                            style: GoogleFonts.sourceSans3(
-                              color: kOnSurfaceVariant,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              height: 1.5,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      children: [
-                        ...docs.map((doc) {
-                          final data = doc.data() as Map<String, dynamic>;
-                          return _buildVenueCard(
-                            venueId: doc.id,
-                            imageUrl: data['resim'] ?? '',
-                            title: data['ad'] ?? '',
-                            description: data['aciklama'] ?? '',
-                            rating: (data['puan'] ?? 0).toString(),
-                            distance: data['mesafe'] ?? '',
-                            location: data['adres'] ?? '',
-                            badgeText: data['rozet'] ?? 'Glutensiz',
-                            badgeColor: kPrimary,
-                            tags: List<String>.from(data['etiketler'] ?? []),
-                          );
-                        }),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  );
-                },
+            SliverToBoxAdapter(child: _buildVenuesBody()),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVenuesBody() {
+    if (_loading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 60),
+        child: Center(child: CircularProgressIndicator(color: kPrimary)),
+      );
+    }
+
+    if (_error != null) {
+      debugPrint('Mekan yükleme hatası: $_error');
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 60),
+        child: Column(
+          children: [
+            Text(
+              'Mekanlar yüklenirken bir hata oluştu.',
+              style: GoogleFonts.plusJakartaSans(
+                color: kOnSurface,
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: _loadInitial,
+              style: TextButton.styleFrom(foregroundColor: kPrimary),
+              child: Text(
+                'Tekrar Dene',
+                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
               ),
             ),
           ],
         ),
+      );
+    }
+
+    if (_venues.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 60),
+        child: Column(
+          children: [
+            const Icon(Icons.location_off_outlined,
+                color: kOutlineVariant, size: 52),
+            const SizedBox(height: 16),
+            Text(
+              'Henüz mekan eklenmemiş',
+              style: GoogleFonts.plusJakartaSans(
+                color: kOnSurface,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Yakında glutensiz dostu mekanlar burada görünecek.',
+              style: GoogleFonts.sourceSans3(
+                color: kOnSurfaceVariant,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          ..._venues.map((v) => _buildVenueCard(
+                venueId: v.id,
+                imageUrl: v.imageUrl,
+                title: v.title,
+                description: v.description,
+                rating: v.rating,
+                distance: v.distance,
+                location: v.location,
+                badgeText: v.badgeText,
+                badgeColor: kPrimary,
+                tags: v.tags,
+              )),
+          if (_loadingMore)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Center(child: CircularProgressIndicator(color: kPrimary)),
+            ),
+          const SizedBox(height: 20),
+        ],
       ),
     );
   }

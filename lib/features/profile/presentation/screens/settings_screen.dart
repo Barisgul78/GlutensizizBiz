@@ -1,11 +1,74 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/utils/snackbars.dart';
+import '../../../auth/data/services/auth_service.dart';
 import '../widgets/profile_ui.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool _isDeleting = false;
+
+  Future<void> _confirmAndDeleteAccount(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: kOnPrimary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Hesabı silmek istediğine emin misin?',
+          style: GoogleFonts.plusJakartaSans(
+            color: kOnSurface,
+            fontWeight: FontWeight.bold,
+            fontSize: 17,
+          ),
+        ),
+        content: Text(
+          'Bu işlem geri alınamaz. Tüm ürün/mekan/makale favorilerin ve profil bilgilerin kalıcı olarak silinir.',
+          style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text('Vazgeç',
+                style: GoogleFonts.plusJakartaSans(
+                    color: kOnSurfaceVariant, fontWeight: FontWeight.w600)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text('Sil',
+                style: GoogleFonts.plusJakartaSans(
+                    color: kError, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    setState(() => _isDeleting = true);
+    try {
+      await AuthService.deleteAccount();
+      if (!context.mounted) return;
+      context.go('/sign');
+    } on FirebaseAuthException catch (e) {
+      if (!context.mounted) return;
+      showErrorSnackBar(context, AuthService.errorMessage(e.code));
+    } catch (_) {
+      if (!context.mounted) return;
+      showErrorSnackBar(context, 'Bir hata oluştu. Lütfen tekrar deneyin.');
+    } finally {
+      if (mounted) setState(() => _isDeleting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -219,7 +282,7 @@ class SettingsScreen extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         GestureDetector(
-          onTap: () => showInfoSnackBar(context, 'Yakında'),
+          onTap: _isDeleting ? null : () => _confirmAndDeleteAccount(context),
           child: Container(
             decoration: cardDecoration(
               color: kErrorContainer,
@@ -233,6 +296,17 @@ class SettingsScreen extends StatelessWidget {
               showChevron: false,
               titleColor: kError,
               subtitleColor: kError,
+              trailing: _isDeleting
+                  ? const Padding(
+                      padding: EdgeInsets.only(top: 6),
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: kError),
+                      ),
+                    )
+                  : null,
             ),
           ),
         ),

@@ -61,14 +61,26 @@ class FavoritesService {
     }
   }
 
+  // Firestore whereIn sorgusu tek seferde en fazla 30 eleman kabul eder,
+  // bu yuzden liste 30'luk parcalara bolunup paralel sorgulanir.
+  static const _whereInLimit = 30;
+
   static Future<List<Product>> fetchProductsByIds(List<String> ids) async {
     if (ids.isEmpty) return [];
-    final snap = await FirebaseFirestore.instance
-        .collectionGroup('marka_urunleri')
-        .where('id', whereIn: ids)
-        .get();
-    return snap.docs
+    final chunks = _chunk(ids, _whereInLimit);
+    final results = await Future.wait(chunks.map((chunk) =>
+        FirebaseFirestore.instance
+            .collectionGroup('marka_urunleri')
+            .where('id', whereIn: chunk)
+            .get()));
+    return results
+        .expand((snap) => snap.docs)
         .map((d) => Product.fromFirestore(d.data()))
         .toList();
   }
+
+  static List<List<T>> _chunk<T>(List<T> list, int size) => [
+        for (var i = 0; i < list.length; i += size)
+          list.sublist(i, i + size > list.length ? list.length : i + size),
+      ];
 }

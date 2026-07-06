@@ -1,4 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,6 +6,7 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/utils/snackbars.dart';
 import '../../../../../core/utils/string_utils.dart';
 import '../../../auth/data/services/auth_service.dart';
+import '../../data/services/profile_service.dart';
 import '../widgets/health_journey_card.dart';
 import '../widgets/profile_ui.dart';
 import '../widgets/stats_section.dart';
@@ -14,7 +15,7 @@ class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   static const _quickActions = [
-    _QuickAction(Icons.edit_outlined, 'Profili\nDüzenle'),
+    _QuickAction(Icons.edit_outlined, 'Hesap\nBilgileri', route: '/profile/edit'),
     _QuickAction(Icons.badge_outlined, 'Sağlık\nKartım'),
     _QuickAction(Icons.military_tech_outlined, 'Rozetlerim'),
   ];
@@ -58,11 +59,10 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = AuthService.currentUser;
     final isAnonymous = AuthService.isAnonymous;
-    final displayName =
-        isAnonymous ? 'Misafir' : (user?.displayName ?? 'Kullanıcı');
-    final email = isAnonymous ? 'Misafir hesabı' : (user?.email ?? '');
+    final uid = AuthService.currentUserId;
+    final fallbackName = AuthService.currentUser?.displayName ?? 'Kullanıcı';
+    final email = isAnonymous ? 'Misafir hesabı' : (AuthService.currentUser?.email ?? '');
 
     return Scaffold(
       backgroundColor: kBackground,
@@ -71,7 +71,20 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             children: [
               _buildHeader(context),
-              _buildAvatar(user, displayName, email),
+              if (isAnonymous || uid == null)
+                _buildAvatar('Misafir', email)
+              else
+                StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                  stream: ProfileService.userStream(uid),
+                  builder: (context, snap) {
+                    final data = snap.data?.data();
+                    final ad = data?['ad'] as String? ?? '';
+                    final soyad = data?['soyad'] as String? ?? '';
+                    final combined = '$ad $soyad'.trim();
+                    final displayName = combined.isNotEmpty ? combined : fallbackName;
+                    return _buildAvatar(displayName, email);
+                  },
+                ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: _buildQuickActions(context),
@@ -152,7 +165,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar(User? user, String displayName, String email) {
+  Widget _buildAvatar(String displayName, String email) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24),
       child: Column(
@@ -168,7 +181,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    initials(user?.displayName),
+                    initials(displayName),
                     style: GoogleFonts.plusJakartaSans(
                       color: Colors.white,
                       fontSize: 36,
@@ -219,7 +232,9 @@ class ProfileScreen extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: GestureDetector(
-                    onTap: () => showInfoSnackBar(context, 'Yakında'),
+                    onTap: () => a.route != null
+                        ? context.push(a.route!)
+                        : showInfoSnackBar(context, 'Yakında'),
                     child: Container(
                       height: 88,
                       decoration: cardDecoration(radius: 14),
@@ -366,8 +381,9 @@ class _SettingsItem {
 class _QuickAction {
   final IconData icon;
   final String label;
+  final String? route;
 
-  const _QuickAction(this.icon, this.label);
+  const _QuickAction(this.icon, this.label, {this.route});
 }
 
 class _Badge {

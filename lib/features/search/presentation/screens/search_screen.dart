@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -22,32 +25,130 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   String query = '';
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   List<String> recentSearches = [];
   String selectedCategory = 'Tümü';
-  Future<List<Product>>? _allProductsFuture;
+  Future<List<Product>>? _popularProductsFuture;
 
-  static const _categories = ['Tümü', 'Ekmek & Pasta', 'Makarna', 'Atıştırmalık', 'İçecek'];
+  List<Product> _searchResults = [];
+  DocumentSnapshot? _lastSearchDoc;
+  bool _searchHasMore = true;
+  bool _searchLoading = false;
+  bool _searchLoadingMore = false;
+  Object? _searchError;
+  Timer? _debounce;
+  int _searchRequestId = 0;
+
+  static const _categories = [
+    'Tümü',
+    'Ekmek & Pasta',
+    'Makarna',
+    'Atıştırmalık',
+    'İçecek'
+  ];
 
   @override
   void initState() {
     super.initState();
-    _allProductsFuture = _fetchAllProducts();
+    _popularProductsFuture = SearchService.fetchFeatured();
     _loadRecentSearches();
+    _scrollController.addListener(_onScroll);
     if (widget.initialQuery != null && widget.initialQuery!.isNotEmpty) {
       _searchController.text = widget.initialQuery!;
       query = widget.initialQuery!.trim().toLowerCase();
+      _startNewSearch(query);
     }
   }
 
-  Future<List<Product>> _fetchAllProducts() => SearchService.fetchAll();
+  void _onScroll() {
+    if (query.isEmpty ||
+        !_searchHasMore ||
+        _searchLoading ||
+        _searchLoadingMore) return;
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMoreSearchResults();
+    }
+  }
 
-  void _retryFetch() {
-    setState(() => _allProductsFuture = _fetchAllProducts());
+  Future<void> _startNewSearch(String q) async {
+    final requestId = ++_searchRequestId;
+    setState(() {
+      _searchResults = [];
+      _lastSearchDoc = null;
+      _searchHasMore = true;
+      _searchError = null;
+      _searchLoading = true;
+    });
+    try {
+      final page = await SearchService.searchByName(q);
+      // Beklerken yeni bir arama başlamışsa bu cevap eski (stale) demektir, yok say.
+      if (!mounted || requestId != _searchRequestId) return;
+      setState(() {
+        _searchResults = page.items;
+        _lastSearchDoc = page.lastDocument;
+        _searchHasMore = page.hasMore;
+        _searchLoading = false;
+      });
+    } catch (e) {
+      if (!mounted || requestId != _searchRequestId) return;
+      setState(() {
+        _searchError = e;
+        _searchLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadMoreSearchResults() async {
+    final requestId = _searchRequestId;
+    setState(() => _searchLoadingMore = true);
+    try {
+      final page =
+          await SearchService.searchByName(query, startAfter: _lastSearchDoc);
+      // Sayfalama beklerken yeni bir arama başlamışsa bu sayfa eski aramaya ait, yok say.
+      if (!mounted || requestId != _searchRequestId) return;
+      setState(() {
+        _searchResults = [..._searchResults, ...page.items];
+        _lastSearchDoc = page.lastDocument;
+        _searchHasMore = page.hasMore;
+        _searchLoadingMore = false;
+      });
+    } catch (e) {
+      debugPrint('Sonraki sayfa yüklenemedi: $e');
+      if (!mounted || requestId != _searchRequestId) return;
+      setState(() => _searchLoadingMore = false);
+    }
+  }
+
+  void _onQueryChanged(String value) {
+    final q = value.trim();
+    setState(() => query = q.toLowerCase());
+    _debounce?.cancel();
+    if (q.isEmpty) {
+      setState(() {
+        _searchResults = [];
+        _lastSearchDoc = null;
+        _searchHasMore = true;
+        _searchError = null;
+      });
+      return;
+    }
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+      _startNewSearch(q);
+    });
+  }
+
+  void _retrySearch() {
+    _startNewSearch(query);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -123,6 +224,7 @@ class _SearchScreenState extends State<SearchScreen> {
             _buildCategoryChips(),
             Expanded(
               child: SingleChildScrollView(
+                controller: _scrollController,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -180,7 +282,8 @@ class _SearchScreenState extends State<SearchScreen> {
               shape: BoxShape.circle,
               color: kSurfaceContainerHigh,
             ),
-            child: const Icon(Icons.notifications_outlined, color: kOnSurfaceVariant, size: 20),
+            child: const Icon(Icons.notifications_outlined,
+                color: kOnSurfaceVariant, size: 20),
           ),
         ],
       ),
@@ -204,12 +307,18 @@ class _SearchScreenState extends State<SearchScreen> {
             Expanded(
               child: TextField(
                 controller: _searchController,
-                style: GoogleFonts.sourceSans3(color: kOnSurface, fontSize: 15, fontWeight: FontWeight.w500),
-                onChanged: (val) => setState(() => query = val.trim().toLowerCase()),
+                style: GoogleFonts.sourceSans3(
+                    color: kOnSurface,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500),
+                onChanged: _onQueryChanged,
                 onSubmitted: _onSearchSubmitted,
                 decoration: InputDecoration(
                   hintText: 'Ürün, marka veya kategori...',
-                  hintStyle: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 15, fontWeight: FontWeight.w500),
+                  hintStyle: GoogleFonts.sourceSans3(
+                      color: kOnSurfaceVariant,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500),
                   border: InputBorder.none,
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(vertical: 14),
@@ -220,7 +329,8 @@ class _SearchScreenState extends State<SearchScreen> {
               onTap: () {
                 // Barkod tarayıcı açılacak (ileride eklenecek)
               },
-              child: const Icon(Icons.qr_code_scanner, color: kPrimary, size: 22),
+              child:
+                  const Icon(Icons.qr_code_scanner, color: kPrimary, size: 22),
             ),
           ],
         ),
@@ -246,7 +356,8 @@ class _SearchScreenState extends State<SearchScreen> {
               decoration: BoxDecoration(
                 color: isSelected ? kPrimary : kSurfaceContainerHigh,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: isSelected ? kPrimary : kOutlineVariant),
+                border:
+                    Border.all(color: isSelected ? kPrimary : kOutlineVariant),
               ),
               child: Text(
                 cat,
@@ -275,12 +386,17 @@ class _SearchScreenState extends State<SearchScreen> {
               Text(
                 'Son Aramalar',
                 style: GoogleFonts.plusJakartaSans(
-                    color: kOnSurface, fontWeight: FontWeight.bold, fontSize: 16),
+                    color: kOnSurface,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16),
               ),
               GestureDetector(
                 onTap: _clearSearches,
                 child: Text('Temizle',
-                    style: GoogleFonts.sourceSans3(color: kPrimary, fontSize: 13, fontWeight: FontWeight.w600)),
+                    style: GoogleFonts.sourceSans3(
+                        color: kPrimary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -296,10 +412,12 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _recentSearchTag(String text) {
     return GestureDetector(
-      onTap: () => setState(() {
+      onTap: () {
+        _debounce?.cancel();
         _searchController.text = text;
         query = text.toLowerCase();
-      }),
+        _startNewSearch(query);
+      },
       child: Container(
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -313,7 +431,10 @@ class _SearchScreenState extends State<SearchScreen> {
             const Icon(Icons.history, color: kOnSurfaceVariant, size: 14),
             const SizedBox(width: 6),
             Text(text,
-                style: GoogleFonts.sourceSans3(color: kOnSurface, fontSize: 13, fontWeight: FontWeight.w500)),
+                style: GoogleFonts.sourceSans3(
+                    color: kOnSurface,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500)),
           ],
         ),
       ),
@@ -333,7 +454,7 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           const SizedBox(height: 12),
           FutureBuilder<List<Product>>(
-            future: _allProductsFuture,
+            future: _popularProductsFuture,
             builder: (context, snap) {
               if (snap.connectionState == ConnectionState.waiting) {
                 return const Center(
@@ -343,12 +464,14 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                 );
               }
-              final products = (snap.data ?? []).take(5).toList();
+              final products = snap.data ?? [];
               if (products.isEmpty) {
                 return Text(
                   'Henüz ürün eklenmemiş.',
                   style: GoogleFonts.sourceSans3(
-                      color: kOnSurfaceVariant, fontSize: 14, fontWeight: FontWeight.w500),
+                      color: kOnSurfaceVariant,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500),
                 );
               }
               return Column(
@@ -444,7 +567,8 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
                 const SizedBox(height: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: kSurfaceContainerHigh,
                     borderRadius: BorderRadius.circular(6),
@@ -467,87 +591,94 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildLiveSearchList() {
-    return FutureBuilder<List<Product>>(
-      future: _allProductsFuture,
-      builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(32),
-              child: CircularProgressIndicator(color: kPrimary),
-            ),
-          );
-        }
+    if (_searchLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32),
+          child: CircularProgressIndicator(color: kPrimary),
+        ),
+      );
+    }
 
-        if (snap.hasError) {
-          debugPrint('Ürün yükleme hatası: ${snap.error}');
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Ürünler yüklenirken bir hata oluştu.',
-                  style: GoogleFonts.sourceSans3(
-                      color: kOnSurfaceVariant, fontSize: 14, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: _retryFetch,
-                  style: TextButton.styleFrom(
-                    foregroundColor: kPrimary,
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: Text(
-                    'Tekrar Dene',
-                    style: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.w600, fontSize: 13),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        final results = (snap.data ?? []).where((p) {
-          final name = p.name.toLowerCase();
-          final brand = p.brand.toLowerCase();
-          return name.contains(query) || brand.contains(query);
-        }).toList();
-
-        if (results.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            child: Text(
-              '"$query" ile eşleşen ürün bulunamadı.',
-              style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-          );
-        }
-
-        return Column(
+    if (_searchError != null) {
+      debugPrint('Ürün yükleme hatası: $_searchError');
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            Text(
+              'Ürünler yüklenirken bir hata oluştu.',
+              style: GoogleFonts.sourceSans3(
+                  color: kOnSurfaceVariant,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: _retrySearch,
+              style: TextButton.styleFrom(
+                foregroundColor: kPrimary,
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
               child: Text(
-                '${results.length} sonuç',
-                style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 13, fontWeight: FontWeight.w500),
+                'Tekrar Dene',
+                style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w600, fontSize: 13),
               ),
             ),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: results.length,
-              itemBuilder: (context, index) =>
-                  _buildSearchResultCard(context, results[index]),
-            ),
           ],
-        );
-      },
+        ),
+      );
+    }
+
+    final results = _searchResults;
+
+    if (results.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        child: Text(
+          '"$query" ile eşleşen ürün bulunamadı.',
+          style: GoogleFonts.sourceSans3(
+              color: kOnSurfaceVariant,
+              fontSize: 14,
+              fontWeight: FontWeight.w500),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+          child: Text(
+            '${results.length} sonuç',
+            style: GoogleFonts.sourceSans3(
+                color: kOnSurfaceVariant,
+                fontSize: 13,
+                fontWeight: FontWeight.w500),
+          ),
+        ),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: results.length + (_searchLoadingMore ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index >= results.length) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child:
+                    Center(child: CircularProgressIndicator(color: kPrimary)),
+              );
+            }
+            return _buildSearchResultCard(context, results[index]);
+          },
+        ),
+      ],
     );
   }
 
@@ -586,7 +717,8 @@ class _SearchScreenState extends State<SearchScreen> {
                       width: 72,
                       height: 72,
                       color: kSurfaceContainerHighest,
-                      child: const Icon(Icons.fastfood, color: kOnSurfaceVariant),
+                      child:
+                          const Icon(Icons.fastfood, color: kOnSurfaceVariant),
                     ),
                   ),
                 ),
@@ -629,7 +761,10 @@ class _SearchScreenState extends State<SearchScreen> {
                   const SizedBox(height: 4),
                   Text(
                     product.category,
-                    style: GoogleFonts.sourceSans3(color: kOnSurfaceVariant, fontSize: 12, fontWeight: FontWeight.w500),
+                    style: GoogleFonts.sourceSans3(
+                        color: kOnSurfaceVariant,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500),
                   ),
                 ],
               ),

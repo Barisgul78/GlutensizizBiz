@@ -12,6 +12,7 @@ import '../../features/favorites/presentation/screens/favorites_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/product_detail/presentation/screens/detail_screen.dart';
+import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
 import '../../features/search/data/models/product.dart';
@@ -114,6 +115,11 @@ GoRouter createAppRouter({required bool showOnboarding}) {
         path: '/settings',
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/profile/edit',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const EditProfileScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

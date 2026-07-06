@@ -75,7 +75,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final _homeSearchCtrl = TextEditingController();
   final _searchFocusNode = FocusNode();
   int _currentTipPage = 0;
-  Future<List<Product>>? _productsFuture;
   Position? _userPosition;
   bool _loadingLocation = true;
 
@@ -84,7 +83,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _productsFuture = SearchService.fetchAll();
     _loadUserLocation();
   }
 
@@ -264,14 +262,12 @@ class _HomeScreenState extends State<HomeScreen> {
       focusNode: _searchFocusNode,
       hideOnEmpty: true,
       suggestionsCallback: (query) async {
-        if (query.trim().isEmpty) return [];
-        final products = await (_productsFuture ?? Future.value(<Product>[]));
-        final q = query.trim().toLowerCase();
-        return products
-            .where((p) =>
-                p.name.toLowerCase().contains(q) ||
-                p.brand.toLowerCase().contains(q))
-            .toList();
+        try {
+          return (await SearchService.searchByName(query)).items;
+        } catch (e) {
+          debugPrint('Arama önerisi yüklenemedi: $e');
+          return <Product>[];
+        }
       },
       itemBuilder: (context, product) => _searchResultCard(product),
       onSelected: (product) {
