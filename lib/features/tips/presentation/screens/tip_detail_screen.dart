@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/constants/app_sizes.dart';
@@ -7,7 +8,6 @@ import '../../../../../core/widgets/bubble_background.dart';
 import '../../data/models/tip.dart';
 import '../widgets/category_badge.dart';
 import '../widgets/tip_image.dart';
-import 'tips_list_screen.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../../favorites/data/services/favorites_service.dart';
 
@@ -79,11 +79,7 @@ class _TipDetailScreenState extends State<TipDetailScreen> {
         centerTitle: true,
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const TipsListScreen()),
-              );
-            },
+            onPressed: () => context.push('/tips'),
             style: TextButton.styleFrom(
               foregroundColor: kPrimary,
               padding: const EdgeInsets.only(right: AppSizes.md),

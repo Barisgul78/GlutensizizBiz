@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../../../core/routing/main_shell.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/bubble_background.dart';
-import '../../../auth/data/services/auth_service.dart';
-import '../../../auth/presentation/screens/sign_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({super.key});
+  const OnboardingScreen({super.key, required this.onCompleted});
+
+  final VoidCallback onCompleted;
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -36,13 +36,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding_done', true);
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => AuthService.currentUser != null
-            ? const MainShell()
-            : const SignScreen(),
-      ),
-    );
+    widget.onCompleted();
+    context.go('/home');
   }
 
   Color get _bgColor => _currentPage == 2 ? kOnboardingDarkGreen : kBackground;

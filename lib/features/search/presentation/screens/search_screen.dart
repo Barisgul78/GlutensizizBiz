@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/models/product.dart';
 import '../../data/services/search_service.dart';
-import '../../../product_detail/presentation/screens/detail_screen.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../../favorites/data/services/favorites_service.dart';
 import '../../../profile/data/services/stats_service.dart';
@@ -354,15 +354,7 @@ class _SearchScreenState extends State<SearchScreen> {
               return Column(
                 children: products.map((product) {
                   return GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => DetailScreen(
-                          product: product,
-                          onBack: () => Navigator.pop(context),
-                        ),
-                      ),
-                    ),
+                    onTap: () => context.push('/urun', extra: product),
                     child: _popularCard(
                       name: product.name,
                       brand: product.brand,
@@ -563,12 +555,7 @@ class _SearchScreenState extends State<SearchScreen> {
     return GestureDetector(
       onTap: () {
         _saveSearch(product.name);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => DetailScreen(product: product, onBack: () => Navigator.pop(context)),
-          ),
-        );
+        context.push('/urun', extra: product);
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),

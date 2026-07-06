@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../search/data/models/product.dart';
 import '../../../auth/data/services/auth_service.dart';
@@ -7,7 +8,6 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/utils/string_utils.dart';
 import '../../../tips/data/models/tip.dart';
 import '../../../tips/data/services/tips_service.dart';
-import '../../../tips/presentation/screens/tip_detail_screen.dart';
 import '../../../tips/presentation/widgets/category_badge.dart';
 import '../../../tips/presentation/widgets/tip_image.dart';
 import '../../../../../core/utils/date_utils.dart' as du;
@@ -304,9 +304,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   Widget _buildArticleCard(Tip tip) {
     return GestureDetector(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => TipDetailScreen(tip: tip)),
-      ),
+      onTap: () => context.push('/tips/detay', extra: tip),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(12),

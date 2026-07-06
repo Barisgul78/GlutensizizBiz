@@ -1,30 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
-import '../../features/home/presentation/screens/home_screen.dart';
-import '../../features/search/presentation/screens/search_screen.dart';
-import '../../features/favorites/presentation/screens/favorites_screen.dart';
-import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/data/services/stats_service.dart';
-import '../../features/tips/presentation/screens/rehber_screen.dart';
-import '../../features/search/data/models/product.dart';
 import '../../features/auth/data/services/auth_service.dart';
 
 class MainShell extends StatefulWidget {
-  const MainShell({super.key});
+  const MainShell({super.key, required this.navigationShell});
+
+  final StatefulNavigationShell navigationShell;
 
   @override
   State<MainShell> createState() => _MainShellState();
 }
 
 class _MainShellState extends State<MainShell> {
-  int _selectedIndex = 0;
-
-  void _dummySelect(Product p) {}
-
-  late final List<Widget> _pages;
-
-  void _navigateToTab(int index) => setState(() => _selectedIndex = index);
-
   @override
   void initState() {
     super.initState();
@@ -32,26 +21,19 @@ class _MainShellState extends State<MainShell> {
     if (userId != null) {
       StatsService.registerDailyVisit(userId);
     }
-    _pages = [
-      HomeScreen(onTabChange: _navigateToTab), // 0 - Anasayfa
-      const SearchScreen(),                    // 1 - Ara
-      const RehberScreen(),                    // 2 - Rehber
-      FavoritesScreen(onProductSelect: _dummySelect), // 3 - Favoriler
-      const ProfileScreen(),                   // 4 - Profil
-    ];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBackground,
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
+      body: widget.navigationShell,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) => setState(() => _selectedIndex = index),
+        selectedIndex: widget.navigationShell.currentIndex,
+        onDestinationSelected: (index) => widget.navigationShell.goBranch(
+          index,
+          initialLocation: index == widget.navigationShell.currentIndex,
+        ),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),

@@ -1,15 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/utils/snackbars.dart';
 import '../../../../../core/utils/string_utils.dart';
 import '../../../auth/data/services/auth_service.dart';
-import '../../../auth/presentation/screens/sign_screen.dart';
 import '../widgets/health_journey_card.dart';
 import '../widgets/profile_ui.dart';
 import '../widgets/stats_section.dart';
-import 'settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -54,10 +53,7 @@ class ProfileScreen extends StatelessWidget {
   Future<void> _signOut(BuildContext context) async {
     await AuthService.signOut();
     if (!context.mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const SignScreen()),
-      (_) => false,
-    );
+    context.go('/sign');
   }
 
   @override
@@ -148,9 +144,7 @@ class ProfileScreen extends StatelessWidget {
             ),
             IconButton(
               icon: const Icon(Icons.settings_outlined, color: kOnSurface),
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SettingsScreen()),
-              ),
+              onPressed: () => context.push('/settings'),
             ),
           ],
         ),

@@ -1,13 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/bubble_background.dart';
-import '../../../../core/routing/main_shell.dart';
 import '../../../../../core/utils/snackbars.dart';
 import '../../data/services/auth_service.dart';
-import 'login_screen.dart';
-import 'register_screen.dart';
 
 class SignScreen extends StatefulWidget {
   const SignScreen({super.key});
@@ -24,10 +22,7 @@ class _SignScreenState extends State<SignScreen> {
     try {
       await AuthService.signInAnonymously();
       if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const MainShell()),
-        (_) => false,
-      );
+      context.go('/home');
     } on FirebaseAuthException catch (e) {
       debugPrint('Misafir giriş hatası — kod: ${e.code}, mesaj: ${e.message}');
       if (!mounted) return;
@@ -126,10 +121,7 @@ class _SignScreenState extends State<SignScreen> {
                     width: double.infinity,
                     height: 54,
                     child: FilledButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (_) => const LoginScreen()),
-                      ),
+                      onPressed: () => context.push('/sign/login'),
                       style: FilledButton.styleFrom(
                         backgroundColor: kPrimary,
                         shape: RoundedRectangleBorder(
@@ -162,10 +154,7 @@ class _SignScreenState extends State<SignScreen> {
                     width: double.infinity,
                     height: 54,
                     child: OutlinedButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (_) => const RegisterScreen()),
-                      ),
+                      onPressed: () => context.push('/sign/register'),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: kPrimary, width: 1.5),
                         shape: RoundedRectangleBorder(

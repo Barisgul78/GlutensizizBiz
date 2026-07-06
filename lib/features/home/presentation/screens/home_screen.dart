@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -13,13 +14,8 @@ import '../../../search/presentation/widgets/product_status_badge.dart';
 import '../../../tips/presentation/widgets/category_badge.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../../tips/data/services/tips_service.dart';
-import '../../../tips/presentation/screens/tip_detail_screen.dart';
-import '../../../tips/presentation/screens/tips_list_screen.dart';
-import '../../../venues/presentation/screens/venues_screen.dart';
-import '../../../venues/presentation/screens/venue_map_screen.dart';
 import '../../../search/data/models/product.dart';
 import '../../../search/data/services/search_service.dart';
-import '../../../product_detail/presentation/screens/detail_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Veri modelleri — mock, ileride Firestore'a taşınacak
@@ -148,9 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: AppSizes.xl),
                   _buildSectionHeader(
                     'Günün İpucu',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const TipsListScreen()),
-                    ),
+                    onTap: () => context.push('/tips'),
                   ),
                   const SizedBox(height: AppSizes.sm + 4),
                   _buildTipsPageView(),
@@ -164,9 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: AppSizes.xl),
                   _buildSectionHeader(
                     'Yakınındaki Mekanlar',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const VenuesScreen()),
-                    ),
+                    onTap: () => context.push('/venues'),
                   ),
                   const SizedBox(height: AppSizes.sm + 4),
                   _buildYakindakiMekanlar(),
@@ -284,14 +276,7 @@ class _HomeScreenState extends State<HomeScreen> {
       itemBuilder: (context, product) => _searchResultCard(product),
       onSelected: (product) {
         _homeSearchCtrl.clear();
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => DetailScreen(
-              product: product,
-              onBack: () => Navigator.pop(context),
-            ),
-          ),
-        );
+        context.push('/urun', extra: product);
       },
       builder: (context, controller, focusNode) => Container(
         height: 50,
@@ -378,14 +363,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _searchResultCard(Product product) {
     return GestureDetector(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => DetailScreen(
-            product: product,
-            onBack: () => Navigator.pop(context),
-          ),
-        ),
-      ),
+      onTap: () => context.push('/urun', extra: product),
       child: Container(
         margin: const EdgeInsets.only(bottom: AppSizes.sm + 2),
         padding: const EdgeInsets.all(AppSizes.sm + 4),
@@ -541,9 +519,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _tipCard(tip) {
     return GestureDetector(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => TipDetailScreen(tip: tip)),
-      ),
+      onTap: () => context.push('/tips/detay', extra: tip),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -723,14 +699,10 @@ class _HomeScreenState extends State<HomeScreen> {
           // Mock harita
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => VenueMapScreen(
-                  center: _mapCenter,
-                  hasUserLocation: _userPosition != null,
-                ),
-              ),
-            ),
+            onTap: () => context.push('/venues/map', extra: {
+              'center': _mapCenter,
+              'hasUserLocation': _userPosition != null,
+            }),
             child: ClipRRect(
               borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(AppSizes.radiusLg)),

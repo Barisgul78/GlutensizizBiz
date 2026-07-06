@@ -2,16 +2,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme/app_theme.dart';
-import 'core/routing/main_shell.dart';
+import 'core/routing/app_router.dart';
 import 'features/auth/data/services/auth_service.dart';
-import 'features/onboarding/presentation/screens/onboarding_screen.dart';
-import 'features/auth/presentation/screens/sign_screen.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   final prefs = await SharedPreferences.getInstance();
   // Debug'da her seferinde onboarding göster; release'de sadece bir kez
   final onboardingDone = kReleaseMode
@@ -19,28 +19,24 @@ void main() async {
       : false;
   // currentUser yerine stream'in ilk event'i beklenir — oturum disk'ten
   // henüz geri yüklenmeden senkron kontrol yanlışlıkla null dönebilir
-  final user = await AuthService.authStateChanges.first;
-  runApp(MyApp(showOnboarding: !onboardingDone, isLoggedIn: user != null));
+  await AuthService.authStateChanges.first;
+  runApp(MyApp(showOnboarding: !onboardingDone));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final bool showOnboarding;
-  final bool isLoggedIn;
-  const MyApp({super.key, required this.showOnboarding, required this.isLoggedIn});
+  const MyApp({super.key, required this.showOnboarding});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late final GoRouter _router = createAppRouter(showOnboarding: widget.showOnboarding);
 
   @override
   Widget build(BuildContext context) {
-    final Widget home;
-    if (showOnboarding) {
-      home = const OnboardingScreen();
-    } else if (isLoggedIn) {
-      // Oturum açık kalmış — direkt ana sayfaya
-      home = const MainShell();
-    } else {
-      home = const SignScreen();
-    }
-
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'GluFree',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
@@ -52,7 +48,7 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: home,
+      routerConfig: _router,
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/constants/app_sizes.dart';
@@ -7,7 +8,6 @@ import '../../data/models/tip.dart';
 import '../../data/services/tips_service.dart';
 import '../widgets/category_badge.dart';
 import '../widgets/tip_image.dart';
-import 'tip_detail_screen.dart';
 
 class TipsListScreen extends StatelessWidget {
   const TipsListScreen({super.key});
@@ -46,9 +46,7 @@ class TipsListScreen extends StatelessWidget {
         itemBuilder: (context, i) => _TipListCard(
           tip: tips[i],
           formattedDate: du.formatDate(tips[i].date),
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => TipDetailScreen(tip: tips[i])),
-          ),
+          onTap: () => context.push('/tips/detay', extra: tips[i]),
         ),
       ),
     );
