@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/utils/snackbars.dart';
+import '../../../../../core/widgets/safe_network_image.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../../profile/data/services/stats_service.dart';
 import '../../data/models/venue.dart';
@@ -347,16 +348,12 @@ class _VenuesScreenState extends State<VenuesScreen> {
             children: [
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                child: Image.network(
-                  imageUrl,
+                child: SafeNetworkImage(
+                  imageUrl: imageUrl,
                   height: 180,
                   width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    height: 180,
-                    color: kSurfaceContainerHighest,
-                    child: const Icon(Icons.restaurant, color: kOnSurfaceVariant, size: 40),
-                  ),
+                  fallbackIcon: Icons.restaurant,
+                  fallbackIconSize: 40,
                 ),
               ),
               // Favori butonu

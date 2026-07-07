@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bottom_picker/bottom_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +9,7 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/custom_text_field.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/utils/snackbars.dart';
+import '../../../../../core/utils/validators.dart';
 import '../../data/services/auth_service.dart';
 
 enum _UsernameStatus { idle, invalid, checking, available, taken }
@@ -23,7 +25,8 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameCtrl = TextEditingController();
+  final _adCtrl = TextEditingController();
+  final _soyadCtrl = TextEditingController();
   final _usernameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
@@ -39,7 +42,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
-    _nameCtrl.dispose();
+    _adCtrl.dispose();
+    _soyadCtrl.dispose();
     _usernameCtrl.dispose();
     _emailCtrl.dispose();
     _passCtrl.dispose();
@@ -95,20 +99,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  Future<void> _pickBirthDate() async {
+  void _pickBirthDate() {
     final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime(now.year - 18, now.month, now.day),
-      firstDate: DateTime(1900),
-      lastDate: now,
-    );
-    if (picked == null) return;
-    setState(() {
-      _birthDate = picked;
-      _birthDateCtrl.text =
-          '${picked.day.toString().padLeft(2, '0')}.${picked.month.toString().padLeft(2, '0')}.${picked.year}';
-    });
+    BottomPicker<DateTime>.date(
+      headerBuilder: (context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Text(
+          'Doğum Tarihi',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+            color: kOnSurface,
+          ),
+        ),
+      ),
+      initialDateTime: DateTime(now.year - 18, now.month, now.day),
+      minDateTime: DateTime(1900),
+      maxDateTime: now,
+      onSubmit: (date) {
+        if (date == null) return;
+        setState(() {
+          _birthDate = date;
+          _birthDateCtrl.text =
+              '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+        });
+      },
+      buttonSingleColor: kPrimary,
+    ).show(context);
   }
 
   Future<void> _register() async {
@@ -118,7 +136,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await AuthService.signUp(
         email: _emailCtrl.text.trim(),
         password: _passCtrl.text,
-        displayName: _nameCtrl.text.trim(),
+        ad: _adCtrl.text.trim(),
+        soyad: _soyadCtrl.text.trim(),
         birthDate: _birthDate!,
         username: _usernameCtrl.text.trim().toLowerCase(),
       );
@@ -178,15 +197,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // Ad Soyad
+                // Ad
                 AppTextField(
-                  controller: _nameCtrl,
-                  label: 'Ad Soyad',
+                  controller: _adCtrl,
+                  label: 'Ad',
                   icon: Icons.person_outline_rounded,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Ad soyad gerekli.';
-                    return null;
-                  },
+                  validator: (v) => Validators.required(v, label: 'Ad'),
+                ),
+                const SizedBox(height: 14),
+
+                // Soyad
+                AppTextField(
+                  controller: _soyadCtrl,
+                  label: 'Soyad',
+                  icon: Icons.person_outline_rounded,
+                  validator: (v) => Validators.required(v, label: 'Soyad'),
                 ),
                 const SizedBox(height: 14),
 

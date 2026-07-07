@@ -4,6 +4,7 @@ import '../../../auth/data/services/auth_service.dart';
 import '../../../favorites/data/services/favorites_service.dart';
 import '../../../profile/data/services/stats_service.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/widgets/safe_network_image.dart';
 
 class DetailScreen extends StatefulWidget {
   final Product product;
@@ -126,12 +127,14 @@ class _DetailScreenState extends State<DetailScreen> {
               color: kSurfaceContainerHighest,
               borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
             ),
-            child: Image.network(
-              widget.product.imageUrl,
+            child: SafeNetworkImage(
+              imageUrl: widget.product.imageUrl,
               height: 180,
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) =>
-                  const Icon(Icons.fastfood, color: kPrimary, size: 64),
+              fallbackIcon: Icons.fastfood,
+              fallbackIconColor: kPrimary,
+              fallbackIconSize: 64,
+              fallbackBackgroundColor: kSurfaceContainerHighest,
             ),
           ),
           Padding(

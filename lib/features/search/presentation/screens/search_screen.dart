@@ -10,6 +10,7 @@ import '../../../auth/data/services/auth_service.dart';
 import '../../../favorites/data/services/favorites_service.dart';
 import '../../../profile/data/services/stats_service.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/widgets/safe_network_image.dart';
 import '../widgets/product_status_badge.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -465,17 +466,11 @@ class _SearchScreenState extends State<SearchScreen> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  imageUrl,
+                child: SafeNetworkImage(
+                  imageUrl: imageUrl,
                   width: 80,
                   height: 80,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    width: 80,
-                    height: 80,
-                    color: kSurfaceContainerHighest,
-                    child: const Icon(Icons.fastfood, color: kOnSurfaceVariant),
-                  ),
+                  fallbackIcon: Icons.fastfood,
                 ),
               ),
               Positioned(
@@ -649,18 +644,11 @@ class _SearchScreenState extends State<SearchScreen> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    product.imageUrl,
+                  child: SafeNetworkImage(
+                    imageUrl: product.imageUrl,
                     width: 72,
                     height: 72,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      width: 72,
-                      height: 72,
-                      color: kSurfaceContainerHighest,
-                      child:
-                          const Icon(Icons.fastfood, color: kOnSurfaceVariant),
-                    ),
+                    fallbackIcon: Icons.fastfood,
                   ),
                 ),
                 Positioned(

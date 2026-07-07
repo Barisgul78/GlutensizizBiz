@@ -26,11 +26,14 @@ class AuthService {
     return doc.exists;
   }
 
+  static String _fullName(String ad, String soyad) => '$ad $soyad'.trim();
+
   // ── Kayıt ──────────────────────────────────────────────────────────────────
   static Future<UserCredential> signUp({
     required String email,
     required String password,
-    required String displayName,
+    required String ad,
+    required String soyad,
     required DateTime birthDate,
     required String username,
   }) async {
@@ -38,12 +41,13 @@ class AuthService {
       email: email,
       password: password,
     );
-    await cred.user!.updateDisplayName(displayName);
+    await cred.user!.updateDisplayName(_fullName(ad, soyad));
     // Firestore profil belgesi ve kullanıcı adı rezervasyonu — başarısız olursa
     // yarım kalmış Auth hesabını geri al (rollback), hatayı yutma.
     try {
       await _db.collection(kUsersCollection).doc(cred.user!.uid).set({
-        'ad': displayName,
+        'ad': ad,
+        'soyad': soyad,
         'email': email,
         'fotoURL': null,
         'dogumTarihi': Timestamp.fromDate(birthDate),
@@ -135,7 +139,7 @@ class AuthService {
     } else {
       await _db.collection(kUsersCollection).doc(uid).update({'ad': ad, 'soyad': soyad});
     }
-    await user.updateDisplayName('$ad $soyad'.trim());
+    await user.updateDisplayName(_fullName(ad, soyad));
   }
 
   // ── E-posta doğrulama ──────────────────────────────────────────────────────

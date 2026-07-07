@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/constants/app_sizes.dart';
+import '../../../../../core/widgets/safe_network_image.dart';
 import '../../../../../core/services/location_service.dart';
 import '../../../../../core/utils/string_utils.dart';
 import '../../../../../core/utils/date_utils.dart' as du;
@@ -31,7 +32,12 @@ class _PopularTopic {
   const _PopularTopic(this.name, this.articleCount, this.iconBg, this.icon);
 }
 
-const _venueIconColors = [kPastelGreen, kPastelBlue, kPastelOrange, kPastelPink];
+const _venueIconColors = [
+  kPastelGreen,
+  kPastelBlue,
+  kPastelOrange,
+  kPastelPink
+];
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -387,18 +393,12 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(AppSizes.radiusSm + 4),
-                  child: Image.network(
-                    product.imageUrl,
+                  child: SafeNetworkImage(
+                    imageUrl: product.imageUrl,
                     width: 60,
                     height: 60,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      width: 60,
-                      height: 60,
-                      color: kSurfaceContainerHighest,
-                      child: const Icon(Icons.fastfood_rounded,
-                          color: kOnSurfaceVariant, size: 24),
-                    ),
+                    fallbackIcon: Icons.fastfood_rounded,
+                    fallbackIconSize: 24,
                   ),
                 ),
                 Positioned(

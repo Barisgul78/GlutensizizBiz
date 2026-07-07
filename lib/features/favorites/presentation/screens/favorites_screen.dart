@@ -6,6 +6,7 @@ import '../../../auth/data/services/auth_service.dart';
 import '../../data/services/favorites_service.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/utils/string_utils.dart';
+import '../../../../../core/widgets/safe_network_image.dart';
 import '../../../tips/data/models/tip.dart';
 import '../../../tips/data/services/tips_service.dart';
 import '../../../tips/presentation/widgets/category_badge.dart';
@@ -399,17 +400,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                product.imageUrl,
+              child: SafeNetworkImage(
+                imageUrl: product.imageUrl,
                 width: 72,
                 height: 72,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  width: 72,
-                  height: 72,
-                  color: kSurfaceContainerHighest,
-                  child: const Icon(Icons.fastfood, color: kOnSurfaceVariant),
-                ),
+                fallbackIcon: Icons.fastfood,
               ),
             ),
             const SizedBox(width: 14),

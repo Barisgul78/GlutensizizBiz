@@ -15,7 +15,8 @@ class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   static const _quickActions = [
-    _QuickAction(Icons.edit_outlined, 'Hesap\nBilgileri', route: '/profile/edit'),
+    _QuickAction(Icons.edit_outlined, 'Hesap\nBilgileri',
+        route: '/profile/edit'),
     _QuickAction(Icons.badge_outlined, 'Sağlık\nKartım'),
     _QuickAction(Icons.military_tech_outlined, 'Rozetlerim'),
   ];
@@ -62,7 +63,8 @@ class ProfileScreen extends StatelessWidget {
     final isAnonymous = AuthService.isAnonymous;
     final uid = AuthService.currentUserId;
     final fallbackName = AuthService.currentUser?.displayName ?? 'Kullanıcı';
-    final email = isAnonymous ? 'Misafir hesabı' : (AuthService.currentUser?.email ?? '');
+    final email =
+        isAnonymous ? 'Misafir hesabı' : (AuthService.currentUser?.email ?? '');
 
     return Scaffold(
       backgroundColor: kBackground,
@@ -81,8 +83,13 @@ class ProfileScreen extends StatelessWidget {
                     final ad = data?['ad'] as String? ?? '';
                     final soyad = data?['soyad'] as String? ?? '';
                     final combined = '$ad $soyad'.trim();
-                    final displayName = combined.isNotEmpty ? combined : fallbackName;
-                    return _buildAvatar(displayName, email);
+                    final displayName =
+                        combined.isNotEmpty ? combined : fallbackName;
+                    final kullaniciAdi = data?['kullaniciAdi'] as String?;
+                    final subtitle = (kullaniciAdi != null && kullaniciAdi.isNotEmpty)
+                        ? '@$kullaniciAdi'
+                        : email;
+                    return _buildAvatar(displayName, subtitle);
                   },
                 ),
               Padding(
@@ -190,19 +197,6 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              Positioned(
-                bottom: 2,
-                right: 2,
-                child: Container(
-                  width: 30,
-                  height: 30,
-                  decoration: const BoxDecoration(
-                    color: kSecondary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.edit, color: Colors.white, size: 16),
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 14),
@@ -218,7 +212,9 @@ class ProfileScreen extends StatelessWidget {
           Text(
             email,
             style: GoogleFonts.sourceSans3(
-                color: kOnSurfaceVariant, fontSize: 14, fontWeight: FontWeight.w500),
+                color: kOnSurfaceVariant,
+                fontSize: 14,
+                fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -309,7 +305,9 @@ class ProfileScreen extends StatelessWidget {
                 Text(
                   b.subtitle,
                   style: GoogleFonts.sourceSans3(
-                      color: kOnSurfaceVariant, fontSize: 11, fontWeight: FontWeight.w500),
+                      color: kOnSurfaceVariant,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
