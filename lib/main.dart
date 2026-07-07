@@ -2,9 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme/app_theme.dart';
+import 'core/providers/theme_provider.dart';
+import 'core/providers/locale_provider.dart';
 import 'core/routing/app_router.dart';
 import 'features/auth/data/services/auth_service.dart';
 
@@ -21,29 +24,39 @@ void main() async {
   // currentUser yerine stream'in ilk event'i beklenir — oturum disk'ten
   // henüz geri yüklenmeden senkron kontrol yanlışlıkla null dönebilir
   await AuthService.authStateChanges.first;
-  runApp(MyApp(showOnboarding: !onboardingDone));
+  runApp(ProviderScope(child: MyApp(showOnboarding: !onboardingDone)));
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends ConsumerStatefulWidget {
   final bool showOnboarding;
   const MyApp({super.key, required this.showOnboarding});
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  ConsumerState<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends ConsumerState<MyApp> {
   late final GoRouter _router =
       createAppRouter(showOnboarding: widget.showOnboarding);
 
   @override
+  void initState() {
+    super.initState();
+    ref.read(themeModeProvider.notifier).load();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final themeMode = ref.watch(themeModeProvider);
+    final locale = ref.watch(localeProvider);
     return MaterialApp.router(
       title: 'GluFree',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      // Şimdilik sabit TR; dinamik dil değişimi ayrı bir iş (LocaleProvider)
-      locale: const Locale('tr'),
+      // Henüz ayrı koyu palet yok — CLAUDE.md'deki tema sistemi korunur
+      darkTheme: AppTheme.light,
+      themeMode: themeMode,
+      locale: locale,
       supportedLocales: const [Locale('tr'), Locale('en')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

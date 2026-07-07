@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _kThemeKey = 'theme_mode';
 
-// Riverpod eklendiğinde StateNotifier'a dönüştürülecek
-class ThemeProvider extends ChangeNotifier {
-  ThemeMode _mode = ThemeMode.light;
+final themeModeProvider =
+    StateNotifierProvider<ThemeModeNotifier, ThemeMode>(
+        (ref) => ThemeModeNotifier());
+
+class ThemeModeNotifier extends StateNotifier<ThemeMode> {
+  ThemeModeNotifier() : super(ThemeMode.light);
+
   SharedPreferences? _prefs;
 
-  ThemeMode get mode => _mode;
-  bool get isDark => _mode == ThemeMode.dark;
+  bool get isDark => state == ThemeMode.dark;
 
   Future<void> load() async {
     _prefs = await SharedPreferences.getInstance();
     final saved = _prefs!.getString(_kThemeKey);
     if (saved == 'dark') {
-      _mode = ThemeMode.dark;
-      notifyListeners();
+      state = ThemeMode.dark;
     }
   }
 
@@ -24,10 +27,10 @@ class ThemeProvider extends ChangeNotifier {
       setMode(isDark ? ThemeMode.light : ThemeMode.dark);
 
   Future<void> setMode(ThemeMode mode) async {
-    if (_mode == mode) return;
-    _mode = mode;
-    notifyListeners();
+    if (state == mode) return;
+    state = mode;
     _prefs ??= await SharedPreferences.getInstance();
-    await _prefs!.setString(_kThemeKey, mode == ThemeMode.dark ? 'dark' : 'light');
+    await _prefs!
+        .setString(_kThemeKey, mode == ThemeMode.dark ? 'dark' : 'light');
   }
 }

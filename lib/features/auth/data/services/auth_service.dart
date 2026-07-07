@@ -16,10 +16,13 @@ class AuthService {
   // Auth durum stream'i — uygulama genelinde dinlenebilir
   static Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  // ── Kullanıcı adı müsaitlik kontrolü ────────────────────────────────────────
+  // ── Kullanıcı adı rezervasyonu (usernames/{username}) ───────────────────────
+  static DocumentReference<Map<String, dynamic>> _usernameDoc(String username) =>
+      _db.collection(kUsernamesCollection).doc(username);
+
   // where sorgusu kullanılmaz — sadece doküman ID'si ile tekil get() yapılır.
   static Future<bool> isUsernameTaken(String username) async {
-    final doc = await _db.collection(kUsernamesCollection).doc(username).get();
+    final doc = await _usernameDoc(username).get();
     return doc.exists;
   }
 
@@ -48,9 +51,7 @@ class AuthService {
         'olusturmaTarihi': FieldValue.serverTimestamp(),
         'anonim': false,
       });
-      await _db.collection(kUsernamesCollection).doc(username).set({
-        'uid': cred.user!.uid,
-      });
+      await _usernameDoc(username).set({'uid': cred.user!.uid});
     } catch (e) {
       debugPrint('Firestore kullanıcı belgesi oluşturulamadı, hesap geri alınıyor: $e');
       try {
@@ -97,7 +98,7 @@ class AuthService {
     final username = userDoc.data()?['kullaniciAdi'] as String?;
 
     if (username != null) {
-      await _db.collection(kUsernamesCollection).doc(username).delete();
+      await _usernameDoc(username).delete();
     }
     await _db.collection(kFavorilerCollection).doc(uid).delete();
     await _db.collection(kUsersCollection).doc(uid).delete();
@@ -123,8 +124,8 @@ class AuthService {
         throw Exception('kullanici-adi-alinmis');
       }
       final batch = _db.batch();
-      batch.delete(_db.collection(kUsernamesCollection).doc(currentUsername));
-      batch.set(_db.collection(kUsernamesCollection).doc(newUsername), {'uid': uid});
+      batch.delete(_usernameDoc(currentUsername));
+      batch.set(_usernameDoc(newUsername), {'uid': uid});
       batch.update(_db.collection(kUsersCollection).doc(uid), {
         'ad': ad,
         'soyad': soyad,

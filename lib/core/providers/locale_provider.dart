@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Şu an yalnızca Türkçe destekleniyor; çoklu dil için iskelet hazır
-class LocaleProvider extends ChangeNotifier {
-  Locale _locale = const Locale('tr');
+final localeProvider =
+    StateNotifierProvider<LocaleNotifier, Locale>((ref) => LocaleNotifier());
 
-  Locale get locale => _locale;
+class LocaleNotifier extends StateNotifier<Locale> {
+  LocaleNotifier() : super(const Locale('tr'));
 
   void setLocale(Locale locale) {
-    if (_locale == locale) return;
-    _locale = locale;
-    notifyListeners();
+    if (state == locale) return;
+    state = locale;
   }
 }

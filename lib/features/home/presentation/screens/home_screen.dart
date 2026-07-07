@@ -16,9 +16,11 @@ import '../../../auth/data/services/auth_service.dart';
 import '../../../tips/data/services/tips_service.dart';
 import '../../../search/data/models/product.dart';
 import '../../../search/data/services/search_service.dart';
+import '../../../venues/data/models/venue.dart';
+import '../../data/services/home_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Veri modelleri — mock, ileride Firestore'a taşınacak
+// Veri modelleri
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _PopularTopic {
@@ -29,15 +31,7 @@ class _PopularTopic {
   const _PopularTopic(this.name, this.articleCount, this.iconBg, this.icon);
 }
 
-class _Venue {
-  final String name;
-  final String district;
-  final String distance;
-  final double rating;
-  final Color color;
-  const _Venue(
-      this.name, this.district, this.distance, this.rating, this.color);
-}
+const _venueIconColors = [kPastelGreen, kPastelBlue, kPastelOrange, kPastelPink];
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -50,11 +44,6 @@ const _popularTopics = [
       Icons.account_balance_rounded),
   _PopularTopic(
       'Güncel Haberler', '11 makale', kPastelPink, Icons.newspaper_rounded),
-];
-
-const _mockVenues = [
-  _Venue('Flora Bistro', 'Kadıköy', '0.8 km', 4.8, kPastelGreen),
-  _Venue('Green Kitchen', 'Beşiktaş', '1.2 km', 4.6, kPastelBlue),
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -77,6 +66,8 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentTipPage = 0;
   Position? _userPosition;
   bool _loadingLocation = true;
+  List<Venue> _venues = [];
+  bool _loadingVenues = true;
 
   final _tips = TipsService.getAll();
 
@@ -84,6 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadUserLocation();
+    _loadVenues();
   }
 
   Future<void> _loadUserLocation() async {
@@ -94,6 +86,21 @@ class _HomeScreenState extends State<HomeScreen> {
       _userPosition = pos;
       _loadingLocation = false;
     });
+  }
+
+  Future<void> _loadVenues() async {
+    try {
+      final venues = await HomeService.fetchNearbyVenues();
+      if (!mounted) return;
+      setState(() {
+        _venues = venues;
+        _loadingVenues = false;
+      });
+    } catch (e) {
+      debugPrint('Mekanlar yüklenemedi: $e');
+      if (!mounted) return;
+      setState(() => _loadingVenues = false);
+    }
   }
 
   @override
@@ -263,7 +270,7 @@ class _HomeScreenState extends State<HomeScreen> {
       hideOnEmpty: true,
       suggestionsCallback: (query) async {
         try {
-          return (await SearchService.searchByName(query)).items;
+          return await SearchService.searchByName(query);
         } catch (e) {
           debugPrint('Arama önerisi yüklenemedi: $e');
           return <Product>[];
@@ -692,7 +699,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Column(
         children: [
-          // Mock harita
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => context.push('/venues/map', extra: {
@@ -709,12 +715,43 @@ class _HomeScreenState extends State<HomeScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(
                 horizontal: AppSizes.md, vertical: AppSizes.sm),
-            child: Column(
-              children: _mockVenues.map((v) => _venueRow(v)).toList(),
-            ),
+            child: _buildVenueList(),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildVenueList() {
+    if (_loadingVenues) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: AppSizes.md),
+        child: Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+    if (_venues.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSizes.md),
+        child: Text(
+          'Henüz mekan eklenmedi',
+          style: GoogleFonts.sourceSans3(
+            color: kOnSurfaceVariant,
+            fontSize: AppSizes.fontSm + 1,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      );
+    }
+    return Column(
+      children: [
+        for (var i = 0; i < _venues.length; i++) _venueRow(_venues[i], i),
+      ],
     );
   }
 
@@ -765,7 +802,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _venueRow(_Venue venue) {
+  Widget _venueRow(Venue venue, int index) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSizes.xs + 2),
       child: Row(
@@ -774,7 +811,7 @@ class _HomeScreenState extends State<HomeScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: venue.color,
+              color: _venueIconColors[index % _venueIconColors.length],
               borderRadius: BorderRadius.circular(AppSizes.radiusSm + 2),
             ),
             child: const Icon(Icons.restaurant_rounded,
@@ -786,7 +823,7 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  venue.name,
+                  venue.title,
                   style: GoogleFonts.plusJakartaSans(
                     color: kOnSurface,
                     fontSize: AppSizes.fontMd,
@@ -794,7 +831,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 Text(
-                  '${venue.district} · ${venue.distance}',
+                  '${venue.location} · ${venue.distance}',
                   style: GoogleFonts.sourceSans3(
                     color: kOnSurfaceVariant,
                     fontSize: AppSizes.fontXs + 1,
@@ -805,7 +842,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Text(
-            venue.rating.toString(),
+            venue.rating,
             style: GoogleFonts.plusJakartaSans(
               color: kOnSurface,
               fontSize: AppSizes.fontMd,
@@ -819,10 +856,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ── Haftanın Markası ──────────────────────────────────────────────────────
   Widget _buildHaftaninMarkasi() {
-    return Column(
+    return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: AppSizes.sm + 4),
+        SizedBox(height: AppSizes.sm + 4),
       ],
     );
   }

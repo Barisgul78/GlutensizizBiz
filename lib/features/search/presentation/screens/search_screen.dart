@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -31,10 +30,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Future<List<Product>>? _popularProductsFuture;
 
   List<Product> _searchResults = [];
-  DocumentSnapshot? _lastSearchDoc;
-  bool _searchHasMore = true;
   bool _searchLoading = false;
-  bool _searchLoadingMore = false;
   Object? _searchError;
   Timer? _debounce;
   int _searchRequestId = 0;
@@ -52,7 +48,6 @@ class _SearchScreenState extends State<SearchScreen> {
     super.initState();
     _popularProductsFuture = SearchService.fetchFeatured();
     _loadRecentSearches();
-    _scrollController.addListener(_onScroll);
     if (widget.initialQuery != null && widget.initialQuery!.isNotEmpty) {
       _searchController.text = widget.initialQuery!;
       query = widget.initialQuery!.trim().toLowerCase();
@@ -60,34 +55,19 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  void _onScroll() {
-    if (query.isEmpty ||
-        !_searchHasMore ||
-        _searchLoading ||
-        _searchLoadingMore) return;
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      _loadMoreSearchResults();
-    }
-  }
-
   Future<void> _startNewSearch(String q) async {
     final requestId = ++_searchRequestId;
     setState(() {
       _searchResults = [];
-      _lastSearchDoc = null;
-      _searchHasMore = true;
       _searchError = null;
       _searchLoading = true;
     });
     try {
-      final page = await SearchService.searchByName(q);
+      final results = await SearchService.searchByName(q);
       // Beklerken yeni bir arama başlamışsa bu cevap eski (stale) demektir, yok say.
       if (!mounted || requestId != _searchRequestId) return;
       setState(() {
-        _searchResults = page.items;
-        _lastSearchDoc = page.lastDocument;
-        _searchHasMore = page.hasMore;
+        _searchResults = results;
         _searchLoading = false;
       });
     } catch (e) {
@@ -99,27 +79,6 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  Future<void> _loadMoreSearchResults() async {
-    final requestId = _searchRequestId;
-    setState(() => _searchLoadingMore = true);
-    try {
-      final page =
-          await SearchService.searchByName(query, startAfter: _lastSearchDoc);
-      // Sayfalama beklerken yeni bir arama başlamışsa bu sayfa eski aramaya ait, yok say.
-      if (!mounted || requestId != _searchRequestId) return;
-      setState(() {
-        _searchResults = [..._searchResults, ...page.items];
-        _lastSearchDoc = page.lastDocument;
-        _searchHasMore = page.hasMore;
-        _searchLoadingMore = false;
-      });
-    } catch (e) {
-      debugPrint('Sonraki sayfa yüklenemedi: $e');
-      if (!mounted || requestId != _searchRequestId) return;
-      setState(() => _searchLoadingMore = false);
-    }
-  }
-
   void _onQueryChanged(String value) {
     final q = value.trim();
     setState(() => query = q.toLowerCase());
@@ -127,8 +86,6 @@ class _SearchScreenState extends State<SearchScreen> {
     if (q.isEmpty) {
       setState(() {
         _searchResults = [];
-        _lastSearchDoc = null;
-        _searchHasMore = true;
         _searchError = null;
       });
       return;
@@ -146,7 +103,6 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void dispose() {
     _searchController.dispose();
-    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _debounce?.cancel();
     super.dispose();
@@ -324,13 +280,6 @@ class _SearchScreenState extends State<SearchScreen> {
                   contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
               ),
-            ),
-            GestureDetector(
-              onTap: () {
-                // Barkod tarayıcı açılacak (ileride eklenecek)
-              },
-              child:
-                  const Icon(Icons.qr_code_scanner, color: kPrimary, size: 22),
             ),
           ],
         ),
@@ -666,17 +615,9 @@ class _SearchScreenState extends State<SearchScreen> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          itemCount: results.length + (_searchLoadingMore ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (index >= results.length) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child:
-                    Center(child: CircularProgressIndicator(color: kPrimary)),
-              );
-            }
-            return _buildSearchResultCard(context, results[index]);
-          },
+          itemCount: results.length,
+          itemBuilder: (context, index) =>
+              _buildSearchResultCard(context, results[index]),
         ),
       ],
     );

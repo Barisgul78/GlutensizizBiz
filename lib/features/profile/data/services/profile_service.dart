@@ -8,6 +8,10 @@ class ProfileService {
   static Stream<DocumentSnapshot<Map<String, dynamic>>> userStream(String userId) =>
       _users.doc(userId).snapshots();
 
+  // Tek seferlik okuma — realtime dinleyici gerekmeyen yerlerde (örn. form doldurma) kullanılır.
+  static Future<DocumentSnapshot<Map<String, dynamic>>> getUser(String userId) =>
+      _users.doc(userId).get();
+
   static Future<void> setDiagnosisDate(String userId, DateTime date) =>
       _users.doc(userId).set(
         {'tani_tarihi': Timestamp.fromDate(date)},

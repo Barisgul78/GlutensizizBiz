@@ -23,6 +23,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _kullaniciAdiCtrl = TextEditingController();
   final _telefonCtrl = TextEditingController();
   final _sehirCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
 
   String _currentUsername = '';
   bool _loading = true;
@@ -35,13 +36,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void initState() {
     super.initState();
     _emailVerified = AuthService.currentUser?.emailVerified ?? false;
+    _emailCtrl.text = AuthService.currentUser?.email ?? '';
     _loadProfile();
   }
 
   Future<void> _loadProfile() async {
     final uid = AuthService.currentUserId;
     if (uid != null) {
-      final doc = await ProfileService.userStream(uid).first;
+      final doc = await ProfileService.getUser(uid);
       final data = doc.data();
       final username = data?['kullaniciAdi'] as String? ?? '';
       if (mounted) {
@@ -65,6 +67,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _kullaniciAdiCtrl.dispose();
     _telefonCtrl.dispose();
     _sehirCtrl.dispose();
+    _emailCtrl.dispose();
     super.dispose();
   }
 
@@ -110,6 +113,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     setState(() => _saving = true);
     try {
+      // Not: Telefon/Şehir henüz Firestore şemasında yok, bilinçli olarak kaydedilmiyor.
       await AuthService.updateProfileBasics(
         ad: ad,
         soyad: _soyadCtrl.text.trim(),
@@ -149,79 +153,63 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildAvatar(user),
-                          sectionTitle('KİŞİSEL BİLGİLER'),
-                          const SizedBox(height: 10),
-                          Container(
-                            decoration: cardDecoration(),
-                            child: Column(
-                              children: [
-                                _ProfileField(
-                                  icon: Icons.person_outline,
-                                  iconBgColor: kPastelGreen,
-                                  label: 'Ad',
-                                  controller: _adCtrl,
-                                ),
-                                sectionDivider(),
-                                _ProfileField(
-                                  icon: Icons.person_outline,
-                                  iconBgColor: kPastelGreen,
-                                  label: 'Soyad',
-                                  controller: _soyadCtrl,
-                                ),
-                                sectionDivider(),
-                                _ProfileField(
-                                  icon: Icons.alternate_email,
-                                  iconBgColor: kPastelBlue,
-                                  label: 'Kullanıcı Adı',
-                                  controller: _kullaniciAdiCtrl,
-                                ),
-                              ],
-                            ),
-                          ),
+                          _section('KİŞİSEL BİLGİLER', Column(
+                            children: [
+                              _ProfileField(
+                                icon: Icons.person_outline,
+                                iconBgColor: kPastelGreen,
+                                label: 'Ad',
+                                controller: _adCtrl,
+                              ),
+                              sectionDivider(),
+                              _ProfileField(
+                                icon: Icons.person_outline,
+                                iconBgColor: kPastelGreen,
+                                label: 'Soyad',
+                                controller: _soyadCtrl,
+                              ),
+                              sectionDivider(),
+                              _ProfileField(
+                                icon: Icons.alternate_email,
+                                iconBgColor: kPastelBlue,
+                                label: 'Kullanıcı Adı',
+                                controller: _kullaniciAdiCtrl,
+                              ),
+                            ],
+                          )),
                           const SizedBox(height: 24),
-                          sectionTitle('İLETİŞİM BİLGİLERİ'),
-                          const SizedBox(height: 10),
-                          Container(
-                            decoration: cardDecoration(),
-                            child: Column(
-                              children: [
-                                _ProfileField(
-                                  icon: Icons.mail_outline,
-                                  iconBgColor: kPastelOrange,
-                                  label: 'E-posta',
-                                  controller: TextEditingController(
-                                      text: user?.email ?? ''),
-                                  readOnly: true,
-                                  trailing: _verifiedBadge(_emailVerified),
-                                ),
+                          _section('İLETİŞİM BİLGİLERİ', Column(
+                            children: [
+                              _ProfileField(
+                                icon: Icons.mail_outline,
+                                iconBgColor: kPastelOrange,
+                                label: 'E-posta',
+                                controller: _emailCtrl,
+                                readOnly: true,
+                                trailing: _verifiedBadge(_emailVerified),
+                              ),
                                 if (!_emailVerified) _buildVerificationActions(),
                                 sectionDivider(),
-                                _ProfileField(
-                                  icon: Icons.call_outlined,
-                                  iconBgColor: kPastelBlue,
-                                  label: 'Telefon',
-                                  controller: _telefonCtrl,
-                                  hint: 'Telefon ekle...',
-                                  keyboardType: TextInputType.phone,
-                                  trailing: _optionalBadge(),
-                                ),
-                              ],
-                            ),
-                          ),
+                              _ProfileField(
+                                icon: Icons.call_outlined,
+                                iconBgColor: kPastelBlue,
+                                label: 'Telefon',
+                                controller: _telefonCtrl,
+                                hint: 'Telefon ekle...',
+                                keyboardType: TextInputType.phone,
+                                trailing: _optionalBadge(),
+                              ),
+                            ],
+                          )),
                           const SizedBox(height: 24),
-                          sectionTitle('KONUM'),
-                          const SizedBox(height: 10),
-                          Container(
-                            decoration: cardDecoration(),
-                            child: _ProfileField(
-                              icon: Icons.location_on_outlined,
-                              iconBgColor: kPastelOrange,
-                              label: 'Şehir',
-                              controller: _sehirCtrl,
-                              hint: 'Şehir ekle...',
-                              trailing: _optionalBadge(),
-                            ),
-                          ),
+                          _section('KONUM', _ProfileField(
+                            icon: Icons.location_on_outlined,
+                            iconBgColor: kPastelOrange,
+                            label: 'Şehir',
+                            controller: _sehirCtrl,
+                            hint: 'Şehir ekle...',
+                            trailing: _optionalBadge(),
+                          )),
                           const SizedBox(height: 24),
                           Container(
                             decoration: cardDecoration(),
@@ -251,56 +239,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  // Başlık + kart iskeleti — Kişisel/İletişim/Konum bölümlerinde tekrar eder.
+  Widget _section(String title, Widget child) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        sectionTitle(title),
+        const SizedBox(height: 10),
+        Container(decoration: cardDecoration(), child: child),
+      ],
+    );
+  }
+
   Widget _buildVerificationActions() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Row(
         children: [
-          TextButton(
-            onPressed: _sendingVerification ? null : _sendVerificationEmail,
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: _sendingVerification
-                ? const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: kPrimary),
-                  )
-                : Text(
-                    'Doğrulama Maili Gönder',
-                    style: GoogleFonts.plusJakartaSans(
-                        color: kPrimary, fontWeight: FontWeight.w700, fontSize: 12),
-                  ),
+          _VerificationActionButton(
+            loading: _sendingVerification,
+            label: 'Doğrulama Maili Gönder',
+            color: kPrimary,
+            onPressed: _sendVerificationEmail,
           ),
           const SizedBox(width: 16),
-          TextButton(
-            onPressed: _checkingVerification ? null : _refreshVerificationStatus,
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: _checkingVerification
-                ? const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: kOnSurfaceVariant),
-                  )
-                : Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.refresh, size: 14, color: kOnSurfaceVariant),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Yenile',
-                        style: GoogleFonts.plusJakartaSans(
-                            color: kOnSurfaceVariant, fontWeight: FontWeight.w700, fontSize: 12),
-                      ),
-                    ],
-                  ),
+          _VerificationActionButton(
+            loading: _checkingVerification,
+            label: 'Yenile',
+            icon: Icons.refresh,
+            color: kOnSurfaceVariant,
+            onPressed: _refreshVerificationStatus,
           ),
         ],
       ),
@@ -513,6 +481,56 @@ class _Badge extends StatelessWidget {
           fontWeight: FontWeight.w700,
         ),
       ),
+    );
+  }
+}
+
+// E-posta doğrulama satırındaki "Gönder"/"Yenile" butonları — ikisi de
+// aynı loading-spinner + metin/ikon desenini paylaşır.
+class _VerificationActionButton extends StatelessWidget {
+  const _VerificationActionButton({
+    required this.loading,
+    required this.label,
+    required this.color,
+    required this.onPressed,
+    this.icon,
+  });
+
+  final bool loading;
+  final String label;
+  final Color color;
+  final VoidCallback onPressed;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: loading ? null : onPressed,
+      style: TextButton.styleFrom(
+        padding: EdgeInsets.zero,
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      child: loading
+          ? SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(strokeWidth: 2, color: color),
+            )
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (icon != null) ...[
+                  Icon(icon, size: 14, color: color),
+                  const SizedBox(width: 4),
+                ],
+                Text(
+                  label,
+                  style: GoogleFonts.plusJakartaSans(
+                      color: color, fontWeight: FontWeight.w700, fontSize: 12),
+                ),
+              ],
+            ),
     );
   }
 }
