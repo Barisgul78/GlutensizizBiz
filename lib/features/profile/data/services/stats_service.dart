@@ -19,6 +19,9 @@ class StatsService {
   static Future<void> registerProductClicked(String userId, String productId) =>
       _registerUnique(userId, prefix: 'tiklanan_urun', itemId: productId);
 
+  static Future<void> registerArticleRead(String userId, String articleId) =>
+      _registerUnique(userId, prefix: 'okunan_makale', itemId: articleId);
+
   // Basit eylem sayacı: her çağrıda toplam +1, ay değiştiyse "bu ay" sıfırlanıp +1
   static Future<void> _bumpCounter(String userId, {required String prefix}) {
     final docRef = _users.doc(userId);

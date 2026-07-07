@@ -43,7 +43,8 @@ class StatsSection extends StatelessWidget {
         final urunIds = List<String>.from(stats['tiklanan_urun_idleri'] as List? ?? const []);
         final urunBuAy = stats['tiklanan_urun_bu_ay'] as int? ?? 0;
 
-        final okunanMakale = stats['okunan_makale_toplam'] as int? ?? 0;
+        final okunanMakaleIds = List<String>.from(stats['okunan_makale_idleri'] as List? ?? const []);
+        final okunanMakaleBuAy = stats['okunan_makale_bu_ay'] as int? ?? 0;
 
         final seri = stats['giris_serisi'] as int? ?? 0;
         final rekor = stats['giris_serisi_rekor'] as int? ?? 0;
@@ -82,7 +83,11 @@ class StatsSection extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: _StatTile(label: 'Okunan makale', value: okunanMakale, thisMonth: null),
+                  child: _StatTile(
+                    label: 'Okunan makale',
+                    value: okunanMakaleIds.length,
+                    thisMonth: okunanMakaleBuAy,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(

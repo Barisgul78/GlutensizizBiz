@@ -10,6 +10,7 @@ import '../widgets/category_badge.dart';
 import '../widgets/tip_image.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../../favorites/data/services/favorites_service.dart';
+import '../../../profile/data/services/stats_service.dart';
 
 class TipDetailScreen extends StatefulWidget {
   final Tip tip;
@@ -25,11 +26,37 @@ enum _Reaction { none, liked, disliked }
 class _TipDetailScreenState extends State<TipDetailScreen> {
   _Reaction _reaction = _Reaction.none;
   bool _saved = false;
+  bool _readRegistered = false;
+  final _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _checkIfSaved();
+    _scrollController.addListener(_maybeRegisterRead);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeRegisterRead());
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // Kısa makalede scroll hiç mümkün değilse direkt okundu say; değilse
+  // like/dislike/kaydet satırına (son gerçek içerik) yaklaşınca say.
+  void _maybeRegisterRead() {
+    if (_readRegistered) return;
+    if (!_scrollController.hasClients) return;
+    final position = _scrollController.position;
+    final scrollable = position.maxScrollExtent > 0;
+    if (!scrollable || position.pixels >= position.maxScrollExtent - 24) {
+      _readRegistered = true;
+      final userId = AuthService.currentUserId;
+      if (userId != null) {
+        StatsService.registerArticleRead(userId, widget.tip.id);
+      }
+    }
   }
 
   Future<void> _checkIfSaved() async {
@@ -98,6 +125,7 @@ class _TipDetailScreenState extends State<TipDetailScreen> {
         children: [
           const BubbleBackground(),
           SingleChildScrollView(
+            controller: _scrollController,
             padding: const EdgeInsets.symmetric(
               horizontal: AppSizes.screenPaddingH,
               vertical: AppSizes.md,
